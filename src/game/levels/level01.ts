@@ -1,16 +1,41 @@
+export type GroundPoint = { x: number; y: number };
 export const level01 = {
-  width: 3600, height: 1100,
-  spawn: { x: 110, y: 340 },
-  finish: { x: 3410, y: 850 },
-  // x/y — центр прямоугольной платформы; верхняя поверхность = y - height / 2.
-  platforms: [
-    { x: 290, y: 500, width: 580, height: 160 },
-    { x: 735, y: 570, width: 190, height: 160 },
-    { x: 1050, y: 640, width: 280, height: 180 },
-    { x: 1430, y: 710, width: 260, height: 200 },
-    { x: 1820, y: 780, width: 300, height: 220 },
-    { x: 2220, y: 850, width: 260, height: 220 },
-    { x: 2720, y: 920, width: 480, height: 240 },
-    { x: 3300, y: 980, width: 600, height: 240 },
+  width: 5200, height: 1620,
+  spawn: { x: 150, y: 506 }, finish: { x: 5000, y: 1260 },
+  // A continuous village hillside. Only the ravine interrupts the footpath.
+  ground: [
+    { x: 0, y: 550 }, { x: 540, y: 550 },
+    { x: 940, y: 665 }, { x: 1370, y: 665 },
+    { x: 1760, y: 780 }, { x: 2180, y: 780 },
+    { x: 2540, y: 880 }, { x: 2950, y: 880 },
+    { x: 3360, y: 1010 }, { x: 3820, y: 1010 },
+    { x: 4250, y: 1140 }, { x: 4590, y: 1140 },
+    { x: 4840, y: 1260 }, { x: 5200, y: 1260 },
+  ] satisfies GroundPoint[],
+  gaps: [{ from: 3630, to: 3760 }],
+  houses: [
+    { x: 365, key: 'house-balcony', scale: 0.9 },
+    { x: 1130, key: 'house-terrace', scale: 0.92 },
+    { x: 1960, key: 'house-small', scale: 1.05 },
+    { x: 2770, key: 'house-balcony', scale: 0.9 },
+    { x: 3500, key: 'house-small', scale: 0.7 },
+    { x: 4450, key: 'house-terrace', scale: 0.86 },
+    { x: 5070, key: 'house-small', scale: 0.8 },
   ],
 };
+
+export function groundY(x: number): number {
+  const points = level01.ground;
+  const clamped = Math.max(0, Math.min(level01.width, x));
+  for (let i = 1; i < points.length; i++) {
+    if (clamped <= points[i].x) {
+      const a = points[i - 1], b = points[i];
+      return a.y + (b.y - a.y) * ((clamped - a.x) / (b.x - a.x));
+    }
+  }
+  return points[points.length - 1].y;
+}
+
+export function isGap(x: number): boolean {
+  return level01.gaps.some(g => x > g.from && x < g.to);
+}
