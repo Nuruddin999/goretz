@@ -1,36 +1,47 @@
 import Phaser from 'phaser';
-// Original 32x40 pixel sprite, eight poses. Nearest-neighbour scale is 3x.
+
+// Native geometric artwork drawn once at 2x resolution; every pose includes both arms.
 export function createPlayerTexture(scene: Phaser.Scene) {
   if (scene.textures.exists('highlander')) return;
-  const canvas=document.createElement('canvas'); canvas.width=32*8; canvas.height=40;
-  const c=canvas.getContext('2d')!;
-  const block=(color:string,x:number,y:number,w:number,h:number)=>{c.fillStyle=color;c.fillRect(x,y,w,h);};
-  for(let f=0;f<8;f++){
-    c.save(); c.translate(f*32,0);
-    const stride=[0,2,3,0,-2,-3,0,0][f],jump=f===7;
-    const bob=f===1||f===4?-1:0;c.translate(0,bob);
-    // Back arm, two independently posed legs, strong readable outline.
-    block('#273344',9,17,4,12);block('#a15d4e',10,18,2,8);block('#d7a27a',10,26,3,3);
-    block('#273344',12-stride,28,5,9);block('#476273',13-stride,29,3,7);
-    block('#202e40',10-stride,36-(jump?3:0),7,2);
-    block('#273344',18+stride,28,5,9);block('#557181',19+stride,29,3,7);
-    block('#202e40',18+stride,36-(jump?5:0),7,2);
-    block('#283344',10,15,14,15);block('#a05d51',11,17,12,11);block('#c47d60',18,17,4,10);
-    block('#e5c59b',15,16,5,2);block('#e5c59b',16,18,3,2);
-    block('#33424f',10,27,14,3);block('#d5b579',17,27,3,2);
-    // Front arm is separated from the coat by a shadow edge.
-    const arm=jump?-3:Math.round(stride/2);
-    block('#273344',23,18+arm,4,10);block('#c78765',23,18+arm,3,8);block('#f0bc88',23,26+arm,4,3);
-    block('#283344',13,5,12,11);block('#e5af82',14,7,10,8);
-    block('#f4cb96',21,8,3,5);block('#273344',22,9,2,2);block('#e5af82',24,11,2,2);
-    block('#6e4b47',14,13,10,3);block('#b37b60',15,13,7,1);
-    // Papakha: clustered fleece pixels, a lit crown and shaded lower band.
-    block('#293847',10,1,16,7);block('#d3c8b4',11,1,14,6);block('#f1e4c4',11,1,13,3);
-    block('#fff0ce',12,0,3,2);block('#fff0ce',17,0,3,2);block('#e4d6b9',23,2,2,3);
-    block('#9c9d98',11,6,14,2);block('#fff0d0',14,2,2,1);block('#c5bca8',18,4,2,1);
-    c.restore();
+  const canvas = document.createElement('canvas');
+  canvas.width = 96 * 2 * 8; canvas.height = 112 * 2;
+  const ctx = canvas.getContext('2d')!;
+  ctx.scale(2, 2);
+  const rounded = (x: number, y: number, w: number, h: number, r: number, color: string) => {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill();
+  };
+  for (let frame = 0; frame < 8; frame++) {
+    ctx.save(); ctx.translate(frame * 96, 0);
+    const stride = frame < 6 ? Math.sin(frame / 6 * Math.PI * 2) : 0;
+    const jump = frame === 7;
+    const bob = frame < 6 ? Math.abs(stride) * 1.5 : 0;
+    ctx.translate(0, -bob);
+    const limb = (x: number, y: number, angle: number, w: number, h: number, color: string, hand = false) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+      rounded(-w / 2, 0, w, h, w / 2, color);
+      if (hand) rounded(-w / 2, h - 3, w, 10, 4, '#e5ae7c');
+      else rounded(-w / 2 - 1, h - 6, w + 8, 10, 4, '#334550');
+      ctx.restore();
+    };
+    limb(43, 72, jump ? 0.5 : stride * 0.48, 12, 28, '#344653');
+    limb(56, 72, jump ? -0.6 : -stride * 0.48, 12, 28, '#405564');
+    limb(35, 45, jump ? 0.7 : -stride * 0.48 + 0.1, 12, 32, '#3b5a64', true);
+    rounded(34, 40, 33, 43, 8, '#527a78');
+    rounded(49, 42, 14, 38, 5, '#80a49a');
+    ctx.fillStyle = '#edcf9f'; ctx.beginPath(); ctx.moveTo(44, 41); ctx.lineTo(53, 57); ctx.lineTo(59, 41); ctx.fill();
+    rounded(32, 70, 37, 7, 3, '#4d5050'); rounded(48, 70, 7, 7, 2, '#d3b66d');
+    limb(64, 45, jump ? -0.9 : stride * 0.48 - 0.08, 12, 32, '#80a49a', true);
+    rounded(40, 17, 27, 28, 10, '#edba88');
+    ctx.fillStyle = '#edba88'; ctx.beginPath(); ctx.arc(67, 32, 5, 0, Math.PI * 2); ctx.fill();
+    rounded(40, 35, 26, 11, 5, '#655348');
+    ctx.fillStyle = '#344550'; ctx.beginPath(); ctx.arc(61, 28, 2, 0, Math.PI * 2); ctx.fill();
+    rounded(34, 4, 37, 20, 7, '#f6e9cc');
+    rounded(34, 19, 38, 7, 3, '#dfd1b0');
+    // Three broad fleece shapes, deliberately no noisy fur texture.
+    ctx.fillStyle = '#fff3d9'; ctx.fillRect(36, 3, 31, 6);
+    ctx.restore();
   }
-  scene.textures.addCanvas('highlander',canvas);
-  const texture=scene.textures.get('highlander');
-  for(let i=0;i<8;i++)texture.add(i,0,i*32,0,32,40);
+  scene.textures.addCanvas('highlander', canvas);
+  const texture = scene.textures.get('highlander');
+  for (let i = 0; i < 8; i++) texture.add(i, 0, i * 192, 0, 192, 224);
 }
