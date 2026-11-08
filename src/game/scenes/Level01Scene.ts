@@ -40,10 +40,10 @@ export class Level01Scene extends Phaser.Scene {
     this.add.image(-180, 15, 'geo-mountains').setOrigin(0).setScale(1).setScrollFactor(0.13, 0.08).setDepth(-80);
     this.add.image(-120, 315, 'geo-hills').setOrigin(0).setScale(1).setScrollFactor(0.26, 0.18).setDepth(-70);
     for (const [x,y,scale] of [[130,105,0.7],[920,155,0.7],[1630,75,1]]) {
-      this.add.image(x,y,'geo-cloud').setOrigin(0).setScale(scale).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
+      this.add.image(x,y,'geo-cloud').setOrigin(0).setScale(scale / 2).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
     }
     for (const [x,y,key] of [[195,490,'house-small'],[330,500,'house-terrace'],[1100,570,'house-small'],[1230,590,'house-balcony']] as const) {
-      this.add.image(x,y,key).setOrigin(0.5,1).setScale(0.3).setTint(0x96a8a0).setScrollFactor(0.3,0.2).setDepth(-60);
+      this.add.image(x,y,key).setOrigin(0.5,1).setScale(0.15).setTint(0x96a8a0).setScrollFactor(0.3,0.2).setDepth(-60);
     }
   }
   private drawVillage() {
@@ -57,16 +57,13 @@ export class Level01Scene extends Phaser.Scene {
         g.fillStyle(i%3?0xa38e79:0xbaa287).fillRect(x,sy,24,9);
         g.fillStyle(0xd1b393).fillRect(x,sy,21,3);
       }
-      this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(1).setDepth(3);
+      this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(0.5).setDepth(3);
     }
-    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'geo-tree').setOrigin(.5,1).setScale(1).setDepth(2);
-    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'geo-shrub').setOrigin(.5,1).setScale(1).setDepth(4);
-    // Shallow pond and its stepped pixel reflections, behind the walking path.
-    const x=2390,y=groundY(x)-18;
-    g.fillStyle(0x315c5b).fillRect(x-99,y-15,198,30);
-    g.fillStyle(0x4d9a9c).fillRect(x-87,y-18,174,27);
-    g.fillStyle(0x7dc5bd).fillRect(x-66,y-12,51,3).fillRect(x+18,y-3,39,3);
-    g.fillStyle(0xa3977d).fillRect(x-108,y-9,24,15);
+    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
+    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
+    // Place the pond on the flat terrace, above the walking surface.
+    const pondX=2630;
+    this.add.image(pondX,groundY(pondX)-36,'geo-pond').setOrigin(.5).setScale(.5).setDepth(4);
     for(const fx of [790,815,840,3070,3095,3120]){
       const fy=Math.round(groundY(fx)/3)*3;
       g.fillStyle(0x403e47).fillRect(fx,fy-45,9,42);
