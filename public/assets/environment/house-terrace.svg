@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="240" viewBox="0 0 280 240">
+<!-- Flat sandstone house: restrained palette, broad shapes, no painted texture. -->
+<rect x="31" y="36" width="217" height="200" rx="8" fill="#e9c792"/>
+<path d="M31 44q0-8 8-8h29v200H39q-8 0-8-8Z" fill="#cfaa78"/>
+<rect x="22" y="28" width="235" height="15" rx="5" fill="#b99166"/>
+<rect x="22" y="25" width="235" height="9" rx="4" fill="#f5dbaa"/>
+<g fill="#886449"><rect x="90" y="64" width="27" height="36" rx="4"/><rect x="150" y="64" width="27" height="36" rx="4"/><rect x="210" y="64" width="22" height="36" rx="4"/></g>
+<g fill="#b38a61"><rect x="87" y="98" width="33" height="6" rx="2"/><rect x="147" y="98" width="33" height="6" rx="2"/><rect x="207" y="98" width="28" height="6" rx="2"/></g>
+<path d="M85 236v-60a24 24 0 0 1 48 0v60Zm64 0v-60a24 24 0 0 1 48 0v60Z" fill="#9c7956"/>
+<path d="M94 236v-59a15 15 0 0 1 30 0v59Zm64 0v-59a15 15 0 0 1 30 0v59Z" fill="#775c46"/>
+<rect x="75" y="131" width="133" height="12" rx="4" fill="#f3d9a6"/>
+<rect x="216" y="168" width="16" height="31" rx="3" fill="#886449"/>
+<g fill="#d6b282"><rect x="45" y="119" width="28" height="10" rx="4"/><rect x="204" y="219" width="25" height="10" rx="4"/><rect x="34" y="204" width="22" height="9" rx="4"/></g>
+</svg>
