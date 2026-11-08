@@ -7,12 +7,13 @@ export class Level01Scene extends Phaser.Scene {
   private finished = false;
   private progress!: Phaser.GameObjects.Graphics;
   private shadow!: Phaser.GameObjects.Ellipse;
+  private hudCamera!: Phaser.Cameras.Scene2D.Camera;
   constructor() { super('Level01'); }
   create() {
     this.finished = false;
     this.physics.resume();
     this.physics.world.setBounds(0, -200, level01.width, level01.height + 500);
-    this.cameras.main.setBounds(0, 0, level01.width, level01.height);
+    this.cameras.main.setBounds(0, 0, level01.width, level01.height).setZoom(0.7);
     this.drawBackdrop();
     this.drawVillage();
     this.drawTerrain();
@@ -23,21 +24,26 @@ export class Level01Scene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.physics.world.off(Phaser.Physics.Arcade.Events.WORLD_STEP, resolve));
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08, -170, 95);
     this.drawFinish();
+    const worldObjects = [...this.children.list];
     this.drawHud();
+    // HUD stays at normal size while the world is zoomed out.
+    this.hudCamera = this.cameras.add(0, 0, 1280, 720);
+    this.hudCamera.ignore(worldObjects);
+    this.cameras.main.ignore(this.children.list.filter(o => !worldObjects.includes(o)));
     const restart = () => this.scene.restart();
     this.input.keyboard!.on('keydown-R', restart);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard!.off('keydown-R', restart));
   }
 
   private drawBackdrop() {
-    this.add.image(0, 0, 'pixel-sky').setOrigin(0).setDisplaySize(1280, 720).setScrollFactor(0).setDepth(-100);
-    this.add.image(-180, 15, 'pixel-mountains').setOrigin(0).setScale(3).setScrollFactor(0.13, 0.08).setDepth(-80);
-    this.add.image(-120, 315, 'pixel-hills').setOrigin(0).setScale(3).setScrollFactor(0.26, 0.18).setDepth(-70);
-    for (const [x,y,scale] of [[130,105,2],[920,155,2],[1630,75,3]]) {
-      this.add.image(x,y,'pixel-cloud').setOrigin(0).setScale(scale).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
+    this.add.image(-500, -250, 'geo-sky').setOrigin(0).setDisplaySize(2300, 1400).setScrollFactor(0).setDepth(-100);
+    this.add.image(-180, 15, 'geo-mountains').setOrigin(0).setScale(1).setScrollFactor(0.13, 0.08).setDepth(-80);
+    this.add.image(-120, 315, 'geo-hills').setOrigin(0).setScale(1).setScrollFactor(0.26, 0.18).setDepth(-70);
+    for (const [x,y,scale] of [[130,105,0.7],[920,155,0.7],[1630,75,1]]) {
+      this.add.image(x,y,'geo-cloud').setOrigin(0).setScale(scale).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
     }
     for (const [x,y,key] of [[195,490,'house-small'],[330,500,'house-terrace'],[1100,570,'house-small'],[1230,590,'house-balcony']] as const) {
-      this.add.image(x,y,key).setOrigin(0.5,1).setScale(1).setTint(0x96a8a0).setScrollFactor(0.3,0.2).setDepth(-60);
+      this.add.image(x,y,key).setOrigin(0.5,1).setScale(0.3).setTint(0x96a8a0).setScrollFactor(0.3,0.2).setDepth(-60);
     }
   }
   private drawVillage() {
@@ -51,10 +57,10 @@ export class Level01Scene extends Phaser.Scene {
         g.fillStyle(i%3?0xa38e79:0xbaa287).fillRect(x,sy,24,9);
         g.fillStyle(0xd1b393).fillRect(x,sy,21,3);
       }
-      this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(3).setDepth(3);
+      this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(1).setDepth(3);
     }
-    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'pixel-tree').setOrigin(.5,1).setScale(3).setDepth(2);
-    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'pixel-shrub').setOrigin(.5,1).setScale(3).setDepth(4);
+    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'geo-tree').setOrigin(.5,1).setScale(1).setDepth(2);
+    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'geo-shrub').setOrigin(.5,1).setScale(1).setDepth(4);
     // Shallow pond and its stepped pixel reflections, behind the walking path.
     const x=2390,y=groundY(x)-18;
     g.fillStyle(0x315c5b).fillRect(x-99,y-15,198,30);
@@ -69,7 +75,7 @@ export class Level01Scene extends Phaser.Scene {
     }
   }
   private drawTerrain() {
-    this.add.image(0,0,'pixel-terrain').setOrigin(0).setScale(3).setDepth(10);
+    this.add.image(0,0,'geo-terrain').setOrigin(0).setScale(1).setDepth(10);
     const g=this.add.graphics().setDepth(11);
     g.fillStyle(0x306e83).fillRect(3630,1170,129,330);
     for(let y=1176;y<1480;y+=24){g.fillStyle(0x84c0c0).fillRect(3642+y%17,y,57,3);}
@@ -94,14 +100,14 @@ export class Level01Scene extends Phaser.Scene {
   }
   private drawHud() {
     const g = this.add.graphics().setScrollFactor(0).setDepth(100);
-    g.fillStyle(0x202e43, 0.93).fillRect(24, 24, 310, 84);
+    g.fillStyle(0x142c40, 0.93).fillRect(24, 24, 310, 84);
     this.add.text(44, 39, 'ГОРЕЦ', { fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
     this.add.text(44, 73, '01  /  СПУСК В СЕЛЕНИЕ', { fontFamily: 'monospace', fontSize: '13px', color: '#9db9b6', letterSpacing: 2 }).setScrollFactor(0).setDepth(101);
-    g.fillStyle(0x202e43, 0.92).fillRect(894, 24, 362, 52);
+    g.fillStyle(0x142c40, 0.92).fillRect(894, 24, 362, 52);
     this.add.text(914, 36, 'Дойди до нижнего селения', { fontFamily: 'monospace', fontSize: '16px', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x425b6a).fillRoundedRect(914, 61, 320, 4, 2);
     this.progress = this.add.graphics().setScrollFactor(0).setDepth(102);
-    g.fillStyle(0x202e43, 0.94).fillRect(230, 665, 820, 34);
+    g.fillStyle(0x142c40, 0.94).fillRect(230, 665, 820, 34);
     this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
   update(time: number, delta: number) {
@@ -110,16 +116,18 @@ export class Level01Scene extends Phaser.Scene {
     const floor = groundY(this.player.x);
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));
-    this.progress.clear().fillStyle(0xb6ce83).fillRoundedRect(914, 61, 320 * Phaser.Math.Clamp(this.player.x / level01.finish.x, 0.01, 1), 4, 2);
+    this.progress.clear().fillStyle(0x88c4b7).fillRoundedRect(914, 61, 320 * Phaser.Math.Clamp(this.player.x / level01.finish.x, 0.01, 1), 4, 2);
     if (this.player.y > level01.height + 100) { this.scene.restart(); return; }
     if (this.player.x > level01.finish.x - 20 && this.player.y > level01.finish.y - 140) {
+      const beforeOverlay = [...this.children.list];
       this.finished = true; this.player.setVelocity(0); this.physics.pause();
       this.add.rectangle(640, 360, 1280, 720, 0x344e51, 0.25).setScrollFactor(0).setDepth(110);
       const panel = this.add.graphics().setScrollFactor(0).setDepth(111);
-      panel.fillStyle(0x25364b).fillRect(300, 255, 680, 210);
+      panel.fillStyle(0x19364a).fillRect(300, 255, 680, 210);
       this.add.text(640, 308, 'Тропа пройдена', { fontFamily: 'monospace', fontSize: '36px', color: '#f2d5ac' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
       this.add.text(640, 371, 'Впереди — нижнее селение', { fontFamily: 'monospace', fontSize: '21px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
       this.add.text(640, 423, 'R — пройти снова', { fontFamily: 'monospace', fontSize: '16px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
+      this.cameras.main.ignore(this.children.list.filter(o => !beforeOverlay.includes(o)));
     }
   }
 }

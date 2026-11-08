@@ -10,8 +10,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'highlander', 6);
     scene.add.existing(this); scene.physics.add.existing(this);
-    this.setScale(3).setDepth(30);
-    this.setSize(10, 34).setOffset(11, 4).setMaxVelocity(320, 1000);
+    this.setScale(0.5).setDepth(30);
+    this.setSize(56, 188).setOffset(68, 20).setMaxVelocity(320, 1000);
     const keyboard = scene.input.keyboard!;
     this.cursors = keyboard.createCursorKeys();
     this.keys = keyboard.addKeys('A,D,W') as typeof this.keys;
