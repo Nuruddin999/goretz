@@ -8,8 +8,15 @@ function polygon(c: Context, color: string, points: number[][]) { c.fillStyle=co
 function line(c:Context,color:string,width:number,points:number[][]){c.strokeStyle=color;c.lineWidth=width;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();}
 function texture(scene:Phaser.Scene,key:string,w:number,h:number,paint:(c:Context)=>void){
   if(scene.textures.exists(key))return;
-  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-  paint(canvas.getContext('2d')!);scene.textures.addCanvas(key,canvas);
+  // Small foreground objects are rasterised at 2x and displayed at half scale.
+  const density = w <= 300 && h <= 300 ? 2 : 1;
+  const canvas=document.createElement('canvas');canvas.width=w*density;canvas.height=h*density;
+  const ctx=canvas.getContext('2d')!;ctx.scale(density,density);
+  paint(ctx);scene.textures.addCanvas(key,canvas);
+  scene.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);
+}
+function clipPolygon(c:Context,points:number[][]){
+  c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.clip();
 }
 function house(c:Context,variant:number){
   // The structural lines remain Dagestani: flat coping, stone walls, arcades, timber galleries.
@@ -19,7 +26,9 @@ function house(c:Context,variant:number){
   polygon(c,'#a6a88e',[[65,48],[257,48],[257,280],[199,280]]);
   rect(c,'#d3caa5',65,48,135,6);
   // Quiet large-scale masonry geometry, rather than noisy blocks.
+  c.save();c.beginPath();c.rect(65,54,192,226);c.clip();
   for(let y=65;y<277;y+=30){line(c,'#929c89',1,[[66,y],[256,y]]);for(let x=80+(y%60===5?0:24);x<250;x+=48)line(c,'#929c89',1,[[x,y],[x,y+29]]);}
+  c.restore();
   rect(c,'#243d4f',19,38,247,15);rect(c,'#d9d1b0',19,34,247,5);
   polygon(c,'#7f9487',[[19,34],[55,21],[258,21],[266,34]]);
   line(c,'#c9dfc8',2,[[22,34],[264,34]]);
@@ -52,32 +61,59 @@ export function createGeometricTextures(scene:Phaser.Scene){
   texture(scene,'geo-mountains',3000,900,c=>{
     const peaks=[[0,660],[190,510],[330,570],[610,170],[770,355],[860,302],[1110,590],[1370,95],[1525,350],[1645,265],[1850,610],[2110,220],[2320,470],[2490,310],[2720,590],[3000,430],[3000,900],[0,900]];
     polygon(c,'#638291',peaks);
+    c.save();clipPolygon(c,peaks);
     polygon(c,'#405e79',[[610,170],[650,490],[850,900],[280,900],[330,570]]);
     polygon(c,'#3b5873',[[1370,95],[1400,550],[1645,265],[1600,660],[1870,900],[980,900]]);
     polygon(c,'#4b6d80',[[2110,220],[2160,630],[2490,310],[2450,750],[2700,900],[1850,900]]);
     polygon(c,'#a3bcb6',[[530,283],[610,170],[770,355],[700,320],[666,345],[633,267],[595,315],[577,270]]);
     polygon(c,'#bbd1c4',[[1266,277],[1370,95],[1525,350],[1430,282],[1404,314],[1360,202],[1325,277],[1300,242]]);
-    line(c,'#789eaa',2,[[610,171],[650,490],[850,900]]);line(c,'#91b4b7',2,[[1370,96],[1400,550],[1645,266]]);
+    line(c,'#789eaa',2,[[610,170],[650,490],[850,900]]);line(c,'#91b4b7',2,[[1370,95],[1400,550],[1645,265]]);
+    c.restore();
   });
   texture(scene,'geo-hills',3000,690,c=>{
-    polygon(c,'#316c70',[[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120],[2600,330],[3000,240],[3000,690],[0,690]]);
+    const silhouette=[[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120],[2600,330],[3000,240],[3000,690],[0,690]];
+    polygon(c,'#316c70',silhouette);c.save();clipPolygon(c,silhouette);
     polygon(c,'#27565f',[[0,520],[400,250],[560,570],[790,130],[900,540],[1420,560],[1900,230],[2040,540],[2230,120],[2400,590],[3000,400],[3000,690],[0,690]]);
     line(c,'#4a8580',2,[[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120]]);
+    c.restore();
   });
   texture(scene,'geo-tree',168,240,c=>{
     polygon(c,'#2b4950',[[77,238],[85,70],[95,70],[94,238]]);polygon(c,'#77917a',[[79,238],[85,90],[87,238]]);
-    polygon(c,'#275b58',[[6,145],[38,80],[76,18],[95,4],[134,75],[161,149],[121,164],[80,170],[36,162]]);
-    polygon(c,'#3b7a63',[[6,145],[76,18],[80,170]]);polygon(c,'#52886b',[[76,18],[95,4],[134,75],[80,98]]);
-    line(c,'#8caf78',2,[[7,145],[76,18],[95,5]]);
-    polygon(c,'#326c5d',[[23,173],[67,89],[113,105],[150,181],[89,199]]);
-    polygon(c,'#4c8668',[[23,173],[67,89],[89,199]]);
+    // A single connected crown, with every internal facet clipped to it.
+    const crown=[[6,145],[38,80],[76,18],[95,4],[134,75],[161,149],[137,158],[150,181],[89,199],[23,173],[36,162]];
+    polygon(c,'#275b58',crown);c.save();clipPolygon(c,crown);
+    polygon(c,'#3b7a63',[[6,145],[76,18],[89,199],[23,173]]);
+    polygon(c,'#52886b',[[76,18],[95,4],[134,75],[80,98]]);
+    polygon(c,'#326c5d',[[80,98],[134,75],[161,149],[150,181],[89,199]]);
+    line(c,'#8caf78',2,[[6,145],[76,18],[95,4]]);
+    line(c,'#467d65',1,[[95,4],[80,98],[89,199]]);
+    c.restore();
   });
   texture(scene,'geo-shrub',96,48,c=>{polygon(c,'#264f50',[[0,48],[7,24],[26,9],[45,17],[60,3],[86,22],[96,48]]);polygon(c,'#4d8264',[[7,24],[26,9],[45,17],[29,36],[60,3],[68,31],[86,22],[96,48],[0,48]]);line(c,'#83a76e',2,[[8,24],[26,10],[45,18]]);});
   texture(scene,'geo-cloud',288,72,c=>{polygon(c,'#9cb8bc',[[0,62],[60,45],[100,18],[146,11],[177,31],[226,35],[288,62]]);polygon(c,'#c2d2c6',[[20,58],[100,18],[146,11],[177,31],[127,27],[88,48]]);});
+  texture(scene,'geo-pond',240,72,c=>{
+    const bank=[[7,39],[22,22],[61,10],[112,6],[171,12],[215,27],[232,44],[213,56],[168,64],[101,66],[43,57],[15,49]];
+    polygon(c,'#3f6e58',bank);
+    const water=[[18,39],[34,27],[67,17],[112,13],[167,19],[205,31],[219,43],[201,50],[164,57],[103,59],[48,51],[25,45]];
+    polygon(c,'#4d9a9c',water);c.save();clipPolygon(c,water);
+    polygon(c,'#3b8189',[[18,39],[34,27],[67,17],[112,13],[167,19],[205,31],[219,43],[199,36],[165,27],[112,21],[68,24],[39,33]]);
+    line(c,'#7dc5bd',3,[[44,39],[76,34],[107,34]]);
+    line(c,'#7dc5bd',2,[[130,44],[164,44],[181,40]]);
+    c.restore();
+    polygon(c,'#96a68b',[[15,43],[24,36],[39,39],[44,48],[27,52],[14,48]]);
+  });
   texture(scene,'geo-terrain',level01.width,1900,c=>{
-    for(let x=0;x<level01.width;x++){
-      if(isGap(x))continue;const y=groundY(x);
-      rect(c,'#293f4c',x,y+38,1,1900-y);rect(c,'#376355',x,y+7,1,33);rect(c,'#8da96d',x,y-3,1,11);rect(c,'#c2c199',x,y-3,1,3);
+    // Draw each connected bank as continuous paths, not fractional 1px columns.
+    const sections=[[0,level01.gaps[0].from],[level01.gaps[0].to,level01.width]];
+    const surfaces=sections.map(([from,to])=>[
+      [from,groundY(from)],...level01.ground.filter(p=>p.x>from&&p.x<to).map(p=>[p.x,p.y]),[to,groundY(to)],
+    ]);
+    for(const surface of surfaces){
+      const from=surface[0][0],to=surface[surface.length-1][0];
+      polygon(c,'#293f4c',[...surface.map(([x,y])=>[x,y-3]),[to,1900],[from,1900]]);
+      polygon(c,'#376355',[...surface.map(([x,y])=>[x,y+7]),...surface.slice().reverse().map(([x,y])=>[x,y+40])]);
+      polygon(c,'#8da96d',[...surface.map(([x,y])=>[x,y-3]),...surface.slice().reverse().map(([x,y])=>[x,y+8])]);
+      line(c,'#c2c199',3,surface.map(([x,y])=>[x,y-1.5]));
     }
     // Large facets with hairline seams keep the cross-section crisp and restrained.
     for(let x=0;x<level01.width;x+=84){if(isGap(x)||isGap(x+70))continue;const y=groundY(x);
