@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
+import { distantHillY } from '../art/geometricEnvironment';
+import { Stream } from '../art/Stream';
 import { groundY, isGap, level01 } from '../levels/level01';
 
 export class Level01Scene extends Phaser.Scene {
   private player!: Player;
+  private stream!: Stream;
   private finished = false;
   private progress!: Phaser.GameObjects.Graphics;
   private shadow!: Phaser.GameObjects.Ellipse;
@@ -13,7 +16,7 @@ export class Level01Scene extends Phaser.Scene {
     this.finished = false;
     this.physics.resume();
     this.physics.world.setBounds(0, -200, level01.width, level01.height + 500);
-    this.cameras.main.setBounds(0, 0, level01.width, level01.height).setZoom(0.7);
+    this.cameras.main.setBounds(0, 0, level01.width, level01.height).setZoom(0.58);
     this.drawBackdrop();
     this.drawVillage();
     this.drawTerrain();
@@ -36,14 +39,22 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private drawBackdrop() {
-    this.add.image(-500, -250, 'geo-sky').setOrigin(0).setDisplaySize(2300, 1400).setScrollFactor(0).setDepth(-100);
+    this.add.image(-1500, -1000, 'geo-sky').setOrigin(0).setDisplaySize(5000, 3600).setScrollFactor(0).setDepth(-100);
     this.add.image(-180, 15, 'geo-mountains').setOrigin(0).setScale(1).setScrollFactor(0.13, 0.08).setDepth(-80);
     this.add.image(-120, 315, 'geo-hills').setOrigin(0).setScale(1).setScrollFactor(0.26, 0.18).setDepth(-70);
     for (const [x,y,scale] of [[130,105,0.7],[920,155,0.7],[1630,75,1]]) {
       this.add.image(x,y,'geo-cloud').setOrigin(0).setScale(scale / 2).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
     }
-    for (const [x,y,key] of [[195,490,'house-small'],[330,500,'house-terrace'],[1100,570,'house-small'],[1230,590,'house-balcony']] as const) {
-      this.add.image(x,y,key).setOrigin(0.5,1).setScale(0.15).setTint(0x96a8a0).setScrollFactor(0.3,0.2).setDepth(-60);
+    // Buildings and their retaining terraces belong to the same moving hillside.
+    const support=this.add.graphics().setScrollFactor(.26,.18).setDepth(-59);
+    for(const [x,key] of [[195,'house-small'],[330,'house-terrace'],[1100,'house-small'],[1230,'house-balcony']] as const){
+      const scale=.15,halfWidth=43;
+      const left=distantHillY(x+120-halfWidth)+315,right=distantHillY(x+120+halfWidth)+315;
+      const base=Math.min(left,right)-1;
+      support.fillStyle(0x597c72).fillPoints([{x:x-halfWidth,y:base},{x:x+halfWidth,y:base},{x:x+halfWidth,y:right+10},{x:x-halfWidth,y:left+10}],true);
+      support.lineStyle(1,0x9fae92).lineBetween(x-halfWidth,base,x+halfWidth,base);
+      // Texture base is at source y=280 (8 logical px of transparent padding).
+      this.add.image(x,base+8*2*scale,key).setOrigin(.5,1).setScale(scale).setTint(0x96a8a0).setScrollFactor(.26,.18).setDepth(-58);
     }
   }
   private drawVillage() {
@@ -61,9 +72,6 @@ export class Level01Scene extends Phaser.Scene {
     }
     for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
     for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
-    // Place the pond on the flat terrace, above the walking surface.
-    const pondX=2630;
-    this.add.image(pondX,groundY(pondX)-36,'geo-pond').setOrigin(.5).setScale(.5).setDepth(4);
     for(const fx of [790,815,840,3070,3095,3120]){
       const fy=Math.round(groundY(fx)/3)*3;
       g.fillStyle(0x403e47).fillRect(fx,fy-45,9,42);
@@ -74,8 +82,7 @@ export class Level01Scene extends Phaser.Scene {
   private drawTerrain() {
     this.add.image(0,0,'geo-terrain').setOrigin(0).setScale(1).setDepth(10);
     const g=this.add.graphics().setDepth(11);
-    g.fillStyle(0x306e83).fillRect(3630,1170,129,330);
-    for(let y=1176;y<1480;y+=24){g.fillStyle(0x84c0c0).fillRect(3642+y%17,y,57,3);}
+    this.stream=new Stream(this);
     const y=groundY(3575);
     g.fillStyle(0x3a3b49).fillRect(3567,y-63,9,63);
     g.fillStyle(0xa18465).fillRect(3534,y-66,84,30);
@@ -110,6 +117,7 @@ export class Level01Scene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.finished) return;
     this.player.update(time, delta);
+    this.stream.animate(time);
     const floor = groundY(this.player.x);
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));

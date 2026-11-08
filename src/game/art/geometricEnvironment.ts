@@ -55,6 +55,14 @@ function house(c:Context,variant:number){
   for(let y=160;y<275;y+=18)polygon(c,'#74966e',[[251,y],[239,y-7],[235,y-1],[249,y+5]]);
   rect(c,'#324b54',172,219,3,29);rect(c,'#9db8a1',169,227,9,17);rect(c,'#e7dfaf',171,230,5,10);
 }
+export const distantHillRidge: number[][] = [[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120],[2600,330],[3000,240]];
+export function distantHillY(x:number):number{
+  for(let i=1;i<distantHillRidge.length;i++){
+    const [ax,ay]=distantHillRidge[i-1],[bx,by]=distantHillRidge[i];
+    if(x<=bx)return ay+(by-ay)*(Math.max(ax,x)-ax)/(bx-ax);
+  }
+  return distantHillRidge[distantHillRidge.length-1][1];
+}
 export function createGeometricTextures(scene:Phaser.Scene){
   ['house-terrace','house-balcony','house-small'].forEach((k,i)=>texture(scene,k,288,288,c=>house(c,i)));
   texture(scene,'geo-sky',8,720,c=>{const g=c.createLinearGradient(0,0,0,720);g.addColorStop(0,'#193d58');g.addColorStop(.6,'#668e9d');g.addColorStop(1,'#adc2b1');c.fillStyle=g;c.fillRect(0,0,8,720);});
@@ -71,37 +79,35 @@ export function createGeometricTextures(scene:Phaser.Scene){
     c.restore();
   });
   texture(scene,'geo-hills',3000,690,c=>{
-    const silhouette=[[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120],[2600,330],[3000,240],[3000,690],[0,690]];
+    const silhouette=[...distantHillRidge,[3000,690],[0,690]];
     polygon(c,'#316c70',silhouette);c.save();clipPolygon(c,silhouette);
     polygon(c,'#27565f',[[0,520],[400,250],[560,570],[790,130],[900,540],[1420,560],[1900,230],[2040,540],[2230,120],[2400,590],[3000,400],[3000,690],[0,690]]);
     line(c,'#4a8580',2,[[0,430],[400,250],[790,130],[1080,320],[1420,420],[1900,230],[2230,120]]);
     c.restore();
   });
   texture(scene,'geo-tree',168,240,c=>{
-    polygon(c,'#2b4950',[[77,238],[85,70],[95,70],[94,238]]);polygon(c,'#77917a',[[79,238],[85,90],[87,238]]);
-    // A single connected crown, with every internal facet clipped to it.
-    const crown=[[6,145],[38,80],[76,18],[95,4],[134,75],[161,149],[137,158],[150,181],[89,199],[23,173],[36,162]];
-    polygon(c,'#275b58',crown);c.save();clipPolygon(c,crown);
-    polygon(c,'#3b7a63',[[6,145],[76,18],[89,199],[23,173]]);
-    polygon(c,'#52886b',[[76,18],[95,4],[134,75],[80,98]]);
-    polygon(c,'#326c5d',[[80,98],[134,75],[161,149],[150,181],[89,199]]);
-    line(c,'#8caf78',2,[[6,145],[76,18],[95,4]]);
-    line(c,'#467d65',1,[[95,4],[80,98],[89,199]]);
+    // Branches sit behind a joined crown built from circular lobes.
+    polygon(c,'#2b4950',[[77,238],[81,113],[96,113],[94,238]]);
+    polygon(c,'#82947b',[[79,238],[84,133],[87,238]]);
+    line(c,'#385951',8,[[85,174],[49,125]]);line(c,'#385951',7,[[89,157],[125,107]]);
+    const crown=()=>{
+      c.beginPath();
+      for(const [x,y,r] of [[41,111,36],[78,68,44],[125,106,36],[87,131,43]]){
+        c.moveTo(x+r,y);c.arc(x,y,r,0,Math.PI*2);
+      }
+      c.rect(30,126,109,35);
+    };
+    crown();c.fillStyle='#315f55';c.fill();
+    c.save();crown();c.clip();
+    c.fillStyle='#4e8466';c.beginPath();c.ellipse(66,100,65,64,-.25,0,Math.PI*2);c.fill();
+    c.fillStyle='#78a171';c.beginPath();c.arc(72,64,39,Math.PI,Math.PI*2);c.fill();
+    c.beginPath();c.arc(36,109,29,Math.PI,Math.PI*2);c.fill();
+    c.fillStyle='#659368';c.beginPath();c.arc(120,104,30,Math.PI,Math.PI*2);c.fill();
+    c.fillStyle='#416f5c';c.beginPath();c.ellipse(112,154,43,27,0,0,Math.PI*2);c.fill();
     c.restore();
   });
   texture(scene,'geo-shrub',96,48,c=>{polygon(c,'#264f50',[[0,48],[7,24],[26,9],[45,17],[60,3],[86,22],[96,48]]);polygon(c,'#4d8264',[[7,24],[26,9],[45,17],[29,36],[60,3],[68,31],[86,22],[96,48],[0,48]]);line(c,'#83a76e',2,[[8,24],[26,10],[45,18]]);});
   texture(scene,'geo-cloud',288,72,c=>{polygon(c,'#9cb8bc',[[0,62],[60,45],[100,18],[146,11],[177,31],[226,35],[288,62]]);polygon(c,'#c2d2c6',[[20,58],[100,18],[146,11],[177,31],[127,27],[88,48]]);});
-  texture(scene,'geo-pond',240,72,c=>{
-    const bank=[[7,39],[22,22],[61,10],[112,6],[171,12],[215,27],[232,44],[213,56],[168,64],[101,66],[43,57],[15,49]];
-    polygon(c,'#3f6e58',bank);
-    const water=[[18,39],[34,27],[67,17],[112,13],[167,19],[205,31],[219,43],[201,50],[164,57],[103,59],[48,51],[25,45]];
-    polygon(c,'#4d9a9c',water);c.save();clipPolygon(c,water);
-    polygon(c,'#3b8189',[[18,39],[34,27],[67,17],[112,13],[167,19],[205,31],[219,43],[199,36],[165,27],[112,21],[68,24],[39,33]]);
-    line(c,'#7dc5bd',3,[[44,39],[76,34],[107,34]]);
-    line(c,'#7dc5bd',2,[[130,44],[164,44],[181,40]]);
-    c.restore();
-    polygon(c,'#96a68b',[[15,43],[24,36],[39,39],[44,48],[27,52],[14,48]]);
-  });
   texture(scene,'geo-terrain',level01.width,1900,c=>{
     // Draw each connected bank as continuous paths, not fractional 1px columns.
     const sections=[[0,level01.gaps[0].from],[level01.gaps[0].to,level01.width]];
