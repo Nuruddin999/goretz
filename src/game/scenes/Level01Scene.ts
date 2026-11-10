@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { VIEW_WIDTH, VIEW_HEIGHT, RENDER_SCALE } from '../display';
-import { Stream } from '../art/Stream';
+import { Stream, riverSurface } from '../art/Stream';
 import { groundY, isGap, level01 } from '../levels/level01';
 
 export class Level01Scene extends Phaser.Scene {
@@ -46,15 +46,10 @@ export class Level01Scene extends Phaser.Scene {
   private drawVillage() {
     const g=this.add.graphics().setDepth(1);
     for(const h of level01.houses){
-      const y=Math.round(groundY(h.x)/3)*3;
-      // Terraces are stacked masonry, with dark joints and lit upper edges.
-      g.fillStyle(0x514e56).fillRect(h.x-168,y-27,336,30);
-      for(let row=0;row<2;row++)for(let i=0;i<12;i++){
-        const x=h.x-165+i*27+(row%2)*3,sy=y-25+row*12;
-        g.fillStyle(i%3?0xa38e79:0xbaa287).fillRect(x,sy,24,9);
-        g.fillStyle(0xd1b393).fillRect(x,sy,21,3);
-      }
-      this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(0.5).setDepth(3);
+      const y=groundY(h.x);
+      // The illustration already has a stone footing. Its visible base, not the
+      // transparent texture margin, sits on the ground. No oversized gray slab.
+      this.add.image(h.x,y+8,h.key).setOrigin(.5,1).setScale(.5).setDepth(3);
     }
     for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
     for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
@@ -69,13 +64,11 @@ export class Level01Scene extends Phaser.Scene {
     this.add.image(0,0,'geo-terrain').setOrigin(0).setScale(1).setDepth(10);
     const g=this.add.graphics().setDepth(11);
     this.stream=new Stream(this);
-    const y=groundY(3575);
-    g.fillStyle(0x3a3b49).fillRect(3567,y-63,9,63);
-    g.fillStyle(0xa18465).fillRect(3534,y-66,84,30);
-    g.fillStyle(0xd9be8c).fillRect(3534,y-66,84,3);
-    this.add.text(3577,y-50,'ПРЫЖОК →',{resolution: RENDER_SCALE, fontFamily:'monospace',fontSize:'10px',color:'#292e40'}).setOrigin(.5).setDepth(20);
+    const signX=3280;
+    this.add.image(signX,groundY(signX)+2,'jump-sign').setOrigin(.5,1).setScale(.42).setDepth(20);
     for(const x of [800,1710,3030,4200,4820]){
-      this.add.image(x,Math.max(groundY(x-40),groundY(x+40))+8,'illustrated-rock').setOrigin(.5,1).setScale(.5).setDepth(12);
+      const slope=Math.atan2(groundY(x+30)-groundY(x-30),60);
+      this.add.image(x,groundY(x)+2,'illustrated-rock').setOrigin(.5,62/70).setScale(.5).setRotation(slope).setDepth(12);
     }
     this.add.image(560,groundY(560)+8,'illustrated-props').setOrigin(.5,1).setScale(.5).setDepth(12);
   }
@@ -105,6 +98,8 @@ export class Level01Scene extends Phaser.Scene {
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));
     this.progress.clear().fillStyle(0x88c4b7).fillRoundedRect(914, 61, 320 * Phaser.Math.Clamp(this.player.x / level01.finish.x, 0.01, 1), 4, 2);
+    const gap=level01.gaps[0];
+    if(isGap(this.player.x) && this.player.y+54>=floor+300+riverSurface(this.player.x-gap.from)){this.scene.restart();return;}
     if (this.player.y > level01.height + 100) { this.scene.restart(); return; }
     if (this.player.x > level01.finish.x - 20 && this.player.y > level01.finish.y - 140) {
       const beforeOverlay = [...this.children.list];
