@@ -1,3 +1,4 @@
+import { pathX } from '../levels/level01';
 export type Rect = { x: number; y: number; width: number; height: number };
 export type RatRoute = { x: number; from: number; to: number; speed: number };
 // The first encounter is alone on level ground. Pairs arrive later, and both
@@ -9,7 +10,7 @@ export const ratRoutes: RatRoute[] = [
   { x: 2870, from: 2800, to: 2920, speed: 72 },
   { x: 4330, from: 4280, to: 4380, speed: 78 },
   { x: 4510, from: 4460, to: 4550, speed: 78 },
-];
+].map(r => ({ ...r, x: pathX(r.x), from: pathX(r.from), to: pathX(r.to) }));
 export function contact(player: Rect, rat: Rect, previousBottom: number, velocityY: number): 'none' | 'stomp' | 'hurt' {
   if (player.x + player.width <= rat.x || player.x >= rat.x + rat.width ||
       player.y + player.height < rat.y || player.y >= rat.y + rat.height) return 'none';
