@@ -38,6 +38,8 @@ for(const leak of roof.roofLeaks){
  assert.equal(terrain.groundY(terrain.level01.houses[2].x-144),terrain.groundY(terrain.level01.houses[2].x+144),'house rests on a flat terrace');
  assert.ok(leak.y<floor-100,'source sits above the walking path');
  assert.equal(roof.dripAt(0,leak.x,leak.y,floor).falling,false);
+ for(let t=0;t<600;t+=10){const attached=roof.dripAt(t,leak.x,leak.y,floor);assert.ok(Math.abs(attached.y-attached.radius*1.4-(leak.y+4))<1e-8,'growing drop stays attached to the lip');}
+ const release=roof.dripAt(600,leak.x,leak.y,floor);assert.ok(Math.abs(release.y-(leak.y+4+11.2))<1e-8,'drop detaches at its grown position');
  const d=roof.dripAt(900,leak.x,leak.y,floor);assert.equal(d.falling,true);
  assert.equal(roof.touchesDrip({x:d.x-14,y:d.y-40,width:28,height:94},900,leak.x,leak.y,floor),true);
  for(let t=1300;t<2800;t+=10)assert.equal(roof.touchesDrip({x:leak.x-14,y:floor-94,width:28,height:94},t,leak.x,leak.y,floor),false,'puddle/splash cannot hurt');

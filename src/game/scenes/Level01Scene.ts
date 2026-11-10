@@ -90,10 +90,7 @@ export class Level01Scene extends Phaser.Scene {
       const y=groundY(h.x);
       // The illustration already has a stone footing. Its visible base, not the
       // transparent texture margin, sits on the ground. No oversized gray slab.
-      if(h===level01.houses[2]){
-        // Same ground anchor and drip lane; only this house uses the new artwork.
-        this.add.image(h.x,y,'house-infected-slug').setOrigin(740/1536,930/1024).setDisplaySize(320,320*1024/1536).setDepth(3);
-      }else this.add.image(h.x,y+8,h.key).setOrigin(.5,1).setScale(.5).setDepth(3);
+      this.add.image(h.x,y+8,h.key).setOrigin(.5,1).setScale(.5).setDepth(3);
     }
     for(const x of level01.trees)this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
     for(const x of level01.shrubs)this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
