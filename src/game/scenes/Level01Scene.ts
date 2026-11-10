@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
-import { distantHillY } from '../art/geometricEnvironment';
+import { VIEW_WIDTH, VIEW_HEIGHT, RENDER_SCALE } from '../display';
 import { Stream } from '../art/Stream';
 import { groundY, isGap, level01 } from '../levels/level01';
 
@@ -16,7 +16,7 @@ export class Level01Scene extends Phaser.Scene {
     this.finished = false;
     this.physics.resume();
     this.physics.world.setBounds(0, -200, level01.width, level01.height + 500);
-    this.cameras.main.setBounds(0, 0, level01.width, level01.height).setZoom(0.58);
+    this.cameras.main.setBounds(0, 0, level01.width, level01.height).setZoom(0.58 * RENDER_SCALE);
     this.drawBackdrop();
     this.drawVillage();
     this.drawTerrain();
@@ -30,7 +30,7 @@ export class Level01Scene extends Phaser.Scene {
     const worldObjects = [...this.children.list];
     this.drawHud();
     // HUD stays at normal size while the world is zoomed out.
-    this.hudCamera = this.cameras.add(0, 0, 1280, 720);
+    this.hudCamera = this.cameras.add(0, 0, VIEW_WIDTH * RENDER_SCALE, VIEW_HEIGHT * RENDER_SCALE).setZoom(RENDER_SCALE).setOrigin(0, 0);
     this.hudCamera.ignore(worldObjects);
     this.cameras.main.ignore(this.children.list.filter(o => !worldObjects.includes(o)));
     const restart = () => this.scene.restart();
@@ -39,23 +39,9 @@ export class Level01Scene extends Phaser.Scene {
   }
 
   private drawBackdrop() {
-    this.add.image(-1500, -1000, 'geo-sky').setOrigin(0).setDisplaySize(5000, 3600).setScrollFactor(0).setDepth(-100);
-    this.add.image(-180, 15, 'geo-mountains').setOrigin(0).setScale(1).setScrollFactor(0.13, 0.08).setDepth(-80);
-    this.add.image(-120, 315, 'geo-hills').setOrigin(0).setScale(1).setScrollFactor(0.26, 0.18).setDepth(-70);
-    for (const [x,y,scale] of [[130,105,0.7],[920,155,0.7],[1630,75,1]]) {
-      this.add.image(x,y,'geo-cloud').setOrigin(0).setScale(scale / 2).setScrollFactor(0.06,0).setDepth(-90).setAlpha(0.85);
-    }
-    // Buildings and their retaining terraces belong to the same moving hillside.
-    const support=this.add.graphics().setScrollFactor(.26,.18).setDepth(-59);
-    for(const [x,key] of [[195,'house-small'],[330,'house-terrace'],[1100,'house-small'],[1230,'house-balcony']] as const){
-      const scale=.15,halfWidth=43;
-      const left=distantHillY(x+120-halfWidth)+315,right=distantHillY(x+120+halfWidth)+315;
-      const base=Math.min(left,right)-1;
-      support.fillStyle(0x597c72).fillPoints([{x:x-halfWidth,y:base},{x:x+halfWidth,y:base},{x:x+halfWidth,y:right+10},{x:x-halfWidth,y:left+10}],true);
-      support.lineStyle(1,0x9fae92).lineBetween(x-halfWidth,base,x+halfWidth,base);
-      // Texture base is at source y=280 (8 logical px of transparent padding).
-      this.add.image(x,base+8*2*scale,key).setOrigin(.5,1).setScale(scale).setTint(0x96a8a0).setScrollFactor(.26,.18).setDepth(-58);
-    }
+    this.scene.launch('IllustratedBackdrop');
+    this.scene.sendToBack('IllustratedBackdrop');
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>this.scene.stop('IllustratedBackdrop'));
   }
   private drawVillage() {
     const g=this.add.graphics().setDepth(1);
@@ -70,8 +56,8 @@ export class Level01Scene extends Phaser.Scene {
       }
       this.add.image(Math.round(h.x/3)*3,y-3,h.key).setOrigin(.5,1).setScale(0.5).setDepth(3);
     }
-    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,groundY(x)-3,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
-    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,groundY(x),'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
+    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
+    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
     for(const fx of [790,815,840,3070,3095,3120]){
       const fy=Math.round(groundY(fx)/3)*3;
       g.fillStyle(0x403e47).fillRect(fx,fy-45,9,42);
@@ -87,14 +73,11 @@ export class Level01Scene extends Phaser.Scene {
     g.fillStyle(0x3a3b49).fillRect(3567,y-63,9,63);
     g.fillStyle(0xa18465).fillRect(3534,y-66,84,30);
     g.fillStyle(0xd9be8c).fillRect(3534,y-66,84,3);
-    this.add.text(3577,y-50,'ПРЫЖОК →',{fontFamily:'monospace',fontSize:'10px',color:'#292e40'}).setOrigin(.5).setDepth(20);
-    // Few warm flowers along the trail give a scale reference and color accent.
-    for(const x of [500,1260,2090,2850,4210,4790]){
-      const y=groundY(x)+24;
-      g.fillStyle(0x425c4c).fillRect(x,y-12,3,15);
-      g.fillStyle(0xd79081).fillRect(x-3,y-15,9,6);
-      g.fillStyle(0xf4d39b).fillRect(x,y-15,3,3);
+    this.add.text(3577,y-50,'ПРЫЖОК →',{resolution: RENDER_SCALE, fontFamily:'monospace',fontSize:'10px',color:'#292e40'}).setOrigin(.5).setDepth(20);
+    for(const x of [800,1710,3030,4200,4820]){
+      this.add.image(x,Math.max(groundY(x-40),groundY(x+40))+8,'illustrated-rock').setOrigin(.5,1).setScale(.5).setDepth(12);
     }
+    this.add.image(560,groundY(560)+8,'illustrated-props').setOrigin(.5,1).setScale(.5).setDepth(12);
   }
   private drawFinish() {
     const { x, y } = level01.finish;
@@ -105,14 +88,14 @@ export class Level01Scene extends Phaser.Scene {
   private drawHud() {
     const g = this.add.graphics().setScrollFactor(0).setDepth(100);
     g.fillStyle(0x142c40, 0.93).fillRect(24, 24, 310, 84);
-    this.add.text(44, 39, 'ГОРЕЦ', { fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
-    this.add.text(44, 73, '01  /  СПУСК В СЕЛЕНИЕ', { fontFamily: 'monospace', fontSize: '13px', color: '#9db9b6', letterSpacing: 2 }).setScrollFactor(0).setDepth(101);
+    this.add.text(44, 39, 'ГОРЕЦ', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
+    this.add.text(44, 73, '01  /  СПУСК В СЕЛЕНИЕ', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '13px', color: '#9db9b6', letterSpacing: 2 }).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x142c40, 0.92).fillRect(894, 24, 362, 52);
-    this.add.text(914, 36, 'Дойди до нижнего селения', { fontFamily: 'monospace', fontSize: '16px', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
+    this.add.text(914, 36, 'Дойди до нижнего селения', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '16px', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x425b6a).fillRoundedRect(914, 61, 320, 4, 2);
     this.progress = this.add.graphics().setScrollFactor(0).setDepth(102);
     g.fillStyle(0x142c40, 0.94).fillRect(230, 665, 820, 34);
-    this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
   update(time: number, delta: number) {
     if (this.finished) return;
@@ -129,9 +112,9 @@ export class Level01Scene extends Phaser.Scene {
       this.add.rectangle(640, 360, 1280, 720, 0x344e51, 0.25).setScrollFactor(0).setDepth(110);
       const panel = this.add.graphics().setScrollFactor(0).setDepth(111);
       panel.fillStyle(0x19364a).fillRect(300, 255, 680, 210);
-      this.add.text(640, 308, 'Тропа пройдена', { fontFamily: 'monospace', fontSize: '36px', color: '#f2d5ac' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
-      this.add.text(640, 371, 'Впереди — нижнее селение', { fontFamily: 'monospace', fontSize: '21px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
-      this.add.text(640, 423, 'R — пройти снова', { fontFamily: 'monospace', fontSize: '16px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
+      this.add.text(640, 308, 'Тропа пройдена', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '36px', color: '#f2d5ac' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
+      this.add.text(640, 371, 'Впереди — нижнее селение', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '21px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
+      this.add.text(640, 423, 'R — пройти снова', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '16px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(112);
       this.cameras.main.ignore(this.children.list.filter(o => !beforeOverlay.includes(o)));
     }
   }
