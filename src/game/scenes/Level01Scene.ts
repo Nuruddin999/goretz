@@ -1,15 +1,18 @@
 import Phaser from 'phaser';
+import { AcidJug } from '../hazards/AcidJug';
+import { acidPools, touchesAcid } from '../hazards/acidRules';
 import { Rat } from '../entities/Rat';
 import { contact, ratRoutes } from '../combat/ratRules';
 import { Player } from '../entities/Player';
 import { VIEW_WIDTH, VIEW_HEIGHT, RENDER_SCALE } from '../display';
 import { Stream, waterSurfaceY } from '../art/Stream';
-import { groundY, isGap, level01 } from '../levels/level01';
+import { groundY, isGap, level01, pathX } from '../levels/level01';
 
 export class Level01Scene extends Phaser.Scene {
   private player!: Player;
   private stream!: Stream;
   private rats: Rat[] = [];
+  private acid: AcidJug[] = [];
   private healthLabel!: Phaser.GameObjects.Text;
   private finished = false;
   private progress!: Phaser.GameObjects.Graphics;
@@ -26,6 +29,7 @@ export class Level01Scene extends Phaser.Scene {
     this.drawTerrain();
     this.shadow = this.add.ellipse(level01.spawn.x, groundY(level01.spawn.x), 49, 9, 0x385c45, 0.2).setDepth(29);
     this.player = new Player(this, level01.spawn.x, level01.spawn.y);
+    this.acid = acidPools.map(pool => new AcidJug(this, pool.x));
     this.rats = ratRoutes.map(route => new Rat(this, route));
     const resolve = () => {
       if (this.finished) return;
@@ -39,14 +43,12 @@ export class Level01Scene extends Phaser.Scene {
         const result = contact({x:body.x,y:body.y,width:body.width,height:body.height},
           {x:enemy.x,y:enemy.y,width:enemy.width,height:enemy.height},previousBottom,descending);
         if (result === 'stomp') { rat.defeat(); this.player.bounce(); break; }
-        if (result === 'hurt' && this.player.receiveHit(this.time.now,body.center.x < enemy.center.x ? -1 : 1)) {
-          this.healthLabel.setText('♥ '.repeat(this.player.health.remaining) + '♡ '.repeat(3-this.player.health.remaining));
-          this.cameras.main.shake(100, .002);
-          if (this.player.health.remaining === 0) {
-            this.finished = true; this.physics.pause();
-            this.time.delayedCall(400, () => this.scene.restart());
-          }
-          break;
+        if (result === 'hurt') { this.hurtPlayer(body.center.x < enemy.center.x ? -1 : 1); break; }
+
+      }
+      if (!this.finished) for (const pool of acidPools) {
+        if (touchesAcid({x:body.x,y:body.y,width:body.width,height:body.height}, pool.from,pool.to,groundY(pool.x))) {
+          this.hurtPlayer(body.velocity.x >= 0 ? -1 : 1); break;
         }
       }
     };
@@ -65,6 +67,15 @@ export class Level01Scene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard!.off('keydown-R', restart));
   }
 
+  private hurtPlayer(direction: number) {
+    if (!this.player.receiveHit(this.time.now, direction)) return;
+    this.healthLabel.setText('♥ '.repeat(this.player.health.remaining) + '♡ '.repeat(3-this.player.health.remaining));
+    this.cameras.main.shake(100, .002);
+    if (this.player.health.remaining === 0) {
+      this.finished = true; this.physics.pause();
+      this.time.delayedCall(400, () => this.scene.restart());
+    }
+  }
   private drawBackdrop() {
     this.scene.launch('IllustratedBackdrop');
     this.scene.sendToBack('IllustratedBackdrop');
@@ -85,7 +96,7 @@ export class Level01Scene extends Phaser.Scene {
     this.add.image(0,0,'geo-terrain').setOrigin(0).setScale(1).setDepth(10);
     const g=this.add.graphics().setDepth(11);
     this.stream=new Stream(this);
-    const signX=3280;
+    const signX=pathX(3280);
     this.add.image(signX,groundY(signX)+2,'jump-sign').setOrigin(.5,1).setScale(.42).setDepth(20);
     for(const x of level01.rocks){
       const slope=Math.atan2(groundY(x+30)-groundY(x-30),60);
@@ -109,7 +120,7 @@ export class Level01Scene extends Phaser.Scene {
     g.fillStyle(0x425b6a).fillRoundedRect(914, 61, 320, 4, 2);
     this.progress = this.add.graphics().setScrollFactor(0).setDepth(102);
     this.healthLabel = this.add.text(914, 87, '♥ ♥ ♥', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '27px', color: '#f4a18e', stroke: '#142c40', strokeThickness: 4 }).setScrollFactor(0).setDepth(101);
-    this.add.text(640, 641, 'Прыгай крысе на спину. Столкновение сбоку — урон.', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '17px', color: '#ffffff', stroke: '#142c40', strokeThickness: 4 }).setOrigin(.5).setScrollFactor(0).setDepth(101);
+    this.add.text(640, 641, 'Крыс побеждай прыжком сверху. Фиолетовую кислоту перепрыгивай.', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '17px', color: '#ffffff', stroke: '#142c40', strokeThickness: 4 }).setOrigin(.5).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x142c40, 0.94).fillRect(230, 665, 820, 34);
     this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
@@ -118,6 +129,7 @@ export class Level01Scene extends Phaser.Scene {
     this.player.update(time, delta);
     for (const rat of this.rats) rat.update(delta);
     this.stream.animate(time);
+    for (const jug of this.acid) jug.animate(time);
     const floor = groundY(this.player.x);
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));

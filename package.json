@@ -9,7 +9,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "check:terrain": "node scripts/check-terrain.cjs",
     "check:water": "node scripts/check-water.cjs",
-    "check:rats": "node scripts/check-rats.cjs"
+    "check:rats": "node scripts/check-rats.cjs",
+    "check:acid": "node scripts/check-acid.cjs"
   },
   "dependencies": {
     "phaser": "3.90.0"

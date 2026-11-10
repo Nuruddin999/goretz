@@ -14,7 +14,7 @@ const terrain=load('src/game/levels/level01.ts',{});
 const {Player}=load('src/game/entities/Player.ts',{
   phaser:{default:{Physics:{Arcade:{Sprite:class{}}},Math:{Clamp:(v,a,b)=>Math.max(a,Math.min(b,v))}}},
   '../levels/level01':terrain,
-  '../combat/ratRules':load('src/game/combat/ratRules.ts',{}),
+  '../combat/ratRules':load('src/game/combat/ratRules.ts',{'../levels/level01':terrain}),
 });
 function actor(x) {
   const p=Object.create(Player.prototype);
@@ -40,17 +40,17 @@ for(const direction of [1,-1]) {
   }
 }
 // Running off the ravine must make the player fall rather than snap to air.
-const falling=actor(3625);
+const falling=actor(4025);
 for(let i=0;i<15;i++) step(falling,5);
 assert.equal(falling.grounded,false);
-assert.ok(falling.body.bottom>terrain.groundY(3700)+20);
+assert.ok(falling.body.bottom>terrain.groundY(4100)+20);
 // A full jump must clear the ravine and land on the far bank.
-const jumping=actor(3585);
+const jumping=actor(3985);
 jumping.grounded=false; jumping.body.velocity.y=-580;
 let crossed=false;
 for(let i=0;i<60;i++) {
   step(jumping,290/60);
-  if(jumping.body.position.x+14>3760 && jumping.grounded) crossed=true;
+  if(jumping.body.position.x+14>4160 && jumping.grounded) crossed=true;
 }
 assert.ok(crossed,'jump must reach the far bank');
 // Landing from above works; approaching below the surface never teleports up.

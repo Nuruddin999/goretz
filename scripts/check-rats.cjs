@@ -8,7 +8,7 @@ function load(file, dependencies={}) {
   vm.runInNewContext(code,{module,exports:module.exports,require:name=>dependencies[name]},{filename:file});
   return module.exports;
 }
-const rules=load('src/game/combat/ratRules.ts');
+const rules=load('src/game/combat/ratRules.ts',{'../levels/level01':load('src/game/levels/level01.ts')});
 const {groundY,isGap,level01}=load('src/game/levels/level01.ts');
 const {contact,Health,patrolDirection,ratRoutes}=rules;
 const rat={x:100,y:100,width:50,height:25};
@@ -44,8 +44,8 @@ for (const route of ratRoutes) {
     for(const x of xs) assert.ok(right < x-half || left > x+half,`${label} overlaps patrol ${route.x}`);
   }
 }
-const edge={x:3610,from:3400,to:3900,speed:60};
-assert.equal(patrolDirection(3610,1,edge,isGap),-1,'turn before entering an unplanned gap');
+const edge={x:4010,from:3800,to:4300,speed:60};
+assert.equal(patrolDirection(4010,1,edge,isGap),-1,'turn before entering an unplanned gap');
 // Exercise the actual Player methods: health gates knockback, and stomping
 // clears coyote/buffer state so the next terrain step cannot cancel the bounce.
 const {Player}=load('src/game/entities/Player.ts',{
