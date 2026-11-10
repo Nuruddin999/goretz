@@ -1,10 +1,10 @@
 import { level01, groundY } from '../levels/level01';
 import { touchesBubble } from './acidRules';
 import type { Rect } from '../combat/ratRules';
-// The left eave of the second house. Values match house-small's illustrated
+// The right eave of the house immediately before the ravine. Values match house-small's illustrated
 // 288x220 footprint at scale .5; the growth sits over the lip, not in the sky.
-const house=level01.houses[1];
-export const roofLeaks=[{x:house.x-137,y:groundY(house.x)-126}];
+const house=level01.houses[2];
+export const roofLeaks=[{x:house.x+137,y:groundY(house.x)-126}];
 export const dripCycle=2800;
 export function dripAt(time:number,x:number,y:number,floor:number){
   const age=Math.max(0,time)%dripCycle,origin=y+22;

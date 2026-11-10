@@ -10,19 +10,19 @@ export const level01 = {
     { x: 940, y: 665 }, { x: 1370, y: 665 },
     { x: 1760, y: 780 }, { x: 2180, y: 780 },
     { x: 2540, y: 880 }, { x: 2950, y: 880 },
-    { x: 3360, y: 1010 }, { x: 3820, y: 1010 },
+    { x: 3210, y: 1010 }, { x: 3820, y: 1010 },
     { x: 4250, y: 1140 }, { x: 4590, y: 1140 },
     { x: 4840, y: 1260 }, { x: 5200, y: 1260 },
   ].map(p => ({ ...p, x: pathX(p.x) })) satisfies GroundPoint[],
   gaps: [{ from: 4030, to: 4160 }],
   // Quiet gaps alternate with small house/stone clusters.
   trees: [40, 780, 2360, 3990, 4760].map(pathX),
-  shrubs: [170, 540, 2220, 3290, 4870].map(pathX),
-  rocks: [540, 3290, 4910].map(pathX),
+  shrubs: [170, 540, 2220, 3150, 4870].map(pathX),
+  rocks: [540, 3190, 4910].map(pathX),
   houses: [
     { x: 365, key: 'house-balcony', scale: 0.9 },
     { x: 2060, key: 'house-small', scale: 1.05 },
-    { x: 3480, key: 'house-small', scale: 0.7 },
+    { x: 3360, key: 'house-small', scale: 0.7 },
     { x: 5070, key: 'house-small', scale: 0.8 },
   ].map(h => ({ ...h, x: pathX(h.x) })),
 };

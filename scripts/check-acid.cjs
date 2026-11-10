@@ -31,6 +31,11 @@ assert.equal(textCalls,0);
 const roof=load('src/game/hazards/roofRules.ts',{'../levels/level01':terrain,'./acidRules':rules});
 for(const leak of roof.roofLeaks){
  const floor=terrain.groundY(leak.x);
+ assert.equal(leak.x,terrain.level01.houses[2].x+137,'right eave of the pre-ravine house');
+ const gap=terrain.level01.gaps[0];
+ assert.ok(gap.from-leak.x>=120,'room to stop after the drop and prepare a jump');
+ assert.equal(terrain.groundY(leak.x+100),floor,'standing area before ravine stays flat');
+ assert.equal(terrain.groundY(terrain.level01.houses[2].x-144),terrain.groundY(terrain.level01.houses[2].x+144),'house rests on a flat terrace');
  assert.ok(leak.y<floor-100,'source sits above the walking path');
  assert.equal(roof.dripAt(0,leak.x,leak.y,floor).falling,false);
  const d=roof.dripAt(900,leak.x,leak.y,floor);assert.equal(d.falling,true);
