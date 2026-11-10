@@ -20,6 +20,11 @@ export class BootScene extends Phaser.Scene {
     this.add.text(this.scale.width/2,this.scale.height/2,'Загрузка рисунков…',{fontFamily:'sans-serif',fontSize:'22px',color:'#ffffff'}).setOrigin(.5);
   }
   create(){
+    // Reuse the broken masonry and fungi at the foot of the same corner.
+    const corner=this.textures.get('roof-damaged-corner');
+    const source=corner.getSourceImage();
+    const baseY=Math.floor(source.height*.55);
+    corner.add('infected-base',0,0,baseY,source.width,source.height-baseY);
     prepareWaterTexture(this);
     prepareIllustratedAssets(this);this.scene.start('Level01');
   }
