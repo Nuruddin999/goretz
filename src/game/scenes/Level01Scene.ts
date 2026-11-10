@@ -71,7 +71,6 @@ export class Level01Scene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>this.scene.stop('IllustratedBackdrop'));
   }
   private drawVillage() {
-    const g=this.add.graphics().setDepth(1);
     for(const h of level01.houses){
       const y=groundY(h.x);
       // The illustration already has a stone footing. Its visible base, not the
@@ -80,12 +79,7 @@ export class Level01Scene extends Phaser.Scene {
     }
     for(const x of level01.trees)this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
     for(const x of level01.shrubs)this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
-    for(const fx of [790,815,840,3070,3095,3120]){
-      const fy=Math.round(groundY(fx)/3)*3;
-      g.fillStyle(0x403e47).fillRect(fx,fy-45,9,42);
-      g.fillStyle(0xae8e6e).fillRect(fx,fy-45,6,39).fillRect(fx-9,fy-30,30,6);
-      g.fillStyle(0xdbc096).fillRect(fx-9,fy-30,30,3);
-    }
+
   }
   private drawTerrain() {
     this.add.image(0,0,'geo-terrain').setOrigin(0).setScale(1).setDepth(10);
