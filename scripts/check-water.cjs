@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const code=ts.transpileModule(fs.readFileSync('src/game/art/Stream.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const moduleObject={exports:{}};
+vm.runInNewContext(code,{exports:moduleObject.exports,module:moduleObject,require:n=>n==='phaser'?{default:{GameObjects:{Sprite:class{}}}}:{groundY:()=>1010,level01:{gaps:[{from:3630,to:3760}]}}});
+const {waterFrameAt,waterSurfaceY,WATER_FRAME_COUNT}=moduleObject.exports;
+assert.equal(WATER_FRAME_COUNT,8);
+assert.equal(waterFrameAt(0),0);assert.equal(waterFrameAt(124),0);
+assert.equal(waterFrameAt(125),1);assert.equal(waterFrameAt(999),7);
+assert.equal(waterFrameAt(1000),0);assert.equal(waterFrameAt(1001),0);
+assert.equal(waterFrameAt(-1),0);
+assert.equal(new Set(Array.from({length:8},(_,i)=>waterFrameAt(i*125))).size,8);
+assert.equal(waterSurfaceY(),1140);
+console.log('Water checks passed: all 8 frames, 125ms cadence, wraparound, stable water level.');

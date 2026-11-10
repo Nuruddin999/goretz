@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { VIEW_WIDTH, VIEW_HEIGHT, RENDER_SCALE } from '../display';
-import { Stream, riverSurface } from '../art/Stream';
+import { Stream, waterSurfaceY } from '../art/Stream';
 import { groundY, isGap, level01 } from '../levels/level01';
 
 export class Level01Scene extends Phaser.Scene {
@@ -98,8 +98,7 @@ export class Level01Scene extends Phaser.Scene {
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));
     this.progress.clear().fillStyle(0x88c4b7).fillRoundedRect(914, 61, 320 * Phaser.Math.Clamp(this.player.x / level01.finish.x, 0.01, 1), 4, 2);
-    const gap=level01.gaps[0];
-    if(isGap(this.player.x) && this.player.y+54>=floor+300+riverSurface(this.player.x-gap.from)){this.scene.restart();return;}
+    if(isGap(this.player.x) && this.player.y+54>=waterSurfaceY()){this.scene.restart();return;}
     if (this.player.y > level01.height + 100) { this.scene.restart(); return; }
     if (this.player.x > level01.finish.x - 20 && this.player.y > level01.finish.y - 140) {
       const beforeOverlay = [...this.children.list];
