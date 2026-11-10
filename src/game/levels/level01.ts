@@ -18,7 +18,7 @@ export const level01 = {
     { x: 1130, key: 'house-terrace', scale: 0.92 },
     { x: 1960, key: 'house-small', scale: 1.05 },
     { x: 2770, key: 'house-balcony', scale: 0.9 },
-    { x: 3500, key: 'house-small', scale: 0.7 },
+    { x: 3480, key: 'house-small', scale: 0.7 },
     { x: 4450, key: 'house-terrace', scale: 0.86 },
     { x: 5070, key: 'house-small', scale: 0.8 },
   ],

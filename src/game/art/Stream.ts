@@ -1,34 +1,28 @@
 import Phaser from 'phaser';
+import { groundY, level01 } from '../levels/level01';
 
-export function streamBanks(y:number):{left:number;right:number}{
-  const sway=Math.sin(y/72)*7;
-  const half=34+Math.min(y/360,1)*23;
-  return {left:65+sway-half,right:65+sway+half};
-}
+export function riverSurface(x:number):number{return 14+Math.sin((x+60)/250*Math.PI)*7;}
 
-// A stream at the bottom of the existing ravine. Visual only; physics is unchanged.
+// A horizontal river on the canyon floor, hidden under the banks at both ends.
+// Its source and destination continue behind terrain, instead of ending in mid-air.
 export class Stream extends Phaser.GameObjects.Graphics {
   constructor(scene:Phaser.Scene){
-    super(scene);scene.add.existing(this);this.setPosition(3630,1160).setDepth(11);
+    super(scene);scene.add.existing(this);
+    const gap=level01.gaps[0];
+    this.setPosition(gap.from,groundY((gap.from+gap.to)/2)+300).setDepth(9);
     this.animate(0);
   }
   animate(time:number){
     this.clear();
-    const left:Phaser.Types.Math.Vector2Like[]=[],right:Phaser.Types.Math.Vector2Like[]=[];
-    for(let y=0;y<=360;y+=6){const b=streamBanks(y);left.push({x:b.left,y});right.push({x:b.right,y});}
-    this.fillStyle(0x68c8d2).fillPoints([...left,...right.reverse()],true);
-    // Pale moving reflections follow the local river banks and never cross them.
-    for(let i=0;i<10;i++){
-      const y=(i*38+time*.027)%360;
-      const b=streamBanks(y),width=b.right-b.left;
+    const upper:Phaser.Types.Math.Vector2Like[]=[],lower:Phaser.Types.Math.Vector2Like[]=[];
+    for(let x=-60;x<=190;x+=5){const y=riverSurface(x);upper.push({x,y});lower.push({x,y:y+27});}
+    this.fillStyle(0x59b9c8).fillPoints([...upper,...lower.slice().reverse()],true);
+    this.lineStyle(2,0xb4e9df,.65).strokePoints(upper);
+    for(let i=0;i<6;i++){
+      const x=-60+((i*47+time*.018)%210),y=riverSurface(x)+9+(i%2)*8;
       const points:Phaser.Types.Math.Vector2Like[]=[];
-      for(let j=0;j<=12;j++){
-        const x=b.left+width*.18+width*.64*j/12;
-        points.push({x,y:y+Math.sin(j*.6+time*.0015+i)*2.5});
-      }
-      this.lineStyle(i%3?1.4:2.2,i%3?0xa2e5e5:0xd2f4ec,.65).strokePoints(points);
+      for(let j=0;j<=8;j++)points.push({x:x+j*4,y:y+Math.sin(j*.65+time*.002+i)*1.2});
+      this.lineStyle(1.3,0xd2f4ec,.7).strokePoints(points);
     }
-    this.lineStyle(2,0xabe5df,.45).strokePoints(left);
-    this.lineStyle(2,0xabe5df,.35).strokePoints(right);
   }
 }
