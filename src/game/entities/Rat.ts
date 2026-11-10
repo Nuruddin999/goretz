@@ -9,10 +9,10 @@ export class Rat extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: Phaser.Scene, private route: RatRoute) {
     super(scene, route.x, groundY(route.x), 'rat', 0);
     scene.add.existing(this); scene.physics.add.existing(this);
-    this.setOrigin(.5, 240 / 256).setScale(.18).setDepth(25);
+    this.setOrigin(.5, 240 / 256).setScale(.22).setDepth(25);
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false); body.moves = false;
-    this.setSize(280, 132).setOffset(40, 108);
+    this.setSize(280, 174).setOffset(40, 66);
     this.update(0);
   }
   update(delta: number) {
@@ -21,7 +21,7 @@ export class Rat extends Phaser.Physics.Arcade.Sprite {
     const dx = this.direction * this.route.speed * Math.min(delta, 50) / 1000;
     this.setPosition(this.x + dx, groundY(this.x + dx));
     this.setFlipX(this.direction < 0);
-    this.setOffset(this.direction < 0 ? 40 : 192, 108);
+    this.setOffset(this.direction < 0 ? 40 : 192, 66);
     this.distance += Math.abs(dx);
     this.setFrame(Math.floor(this.distance / 9) % 4);
     (this.body as Phaser.Physics.Arcade.Body).updateFromGameObject();
