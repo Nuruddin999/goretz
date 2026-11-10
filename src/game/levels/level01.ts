@@ -13,13 +13,14 @@ export const level01 = {
     { x: 4840, y: 1260 }, { x: 5200, y: 1260 },
   ] satisfies GroundPoint[],
   gaps: [{ from: 3630, to: 3760 }],
+  // Quiet gaps alternate with small house/stone clusters.
+  trees: [40, 780, 2360, 3990, 4760],
+  shrubs: [170, 540, 2220, 3290, 4870],
+  rocks: [540, 3290, 4910],
   houses: [
     { x: 365, key: 'house-balcony', scale: 0.9 },
-    { x: 1130, key: 'house-terrace', scale: 0.92 },
-    { x: 1960, key: 'house-small', scale: 1.05 },
-    { x: 2770, key: 'house-balcony', scale: 0.9 },
+    { x: 2060, key: 'house-small', scale: 1.05 },
     { x: 3480, key: 'house-small', scale: 0.7 },
-    { x: 4450, key: 'house-terrace', scale: 0.86 },
     { x: 5070, key: 'house-small', scale: 0.8 },
   ],
 };

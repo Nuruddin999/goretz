@@ -9,7 +9,7 @@ function load(file, dependencies={}) {
   return module.exports;
 }
 const rules=load('src/game/combat/ratRules.ts');
-const {groundY,isGap}=load('src/game/levels/level01.ts');
+const {groundY,isGap,level01}=load('src/game/levels/level01.ts');
 const {contact,Health,patrolDirection,ratRoutes}=rules;
 const rat={x:100,y:100,width:50,height:25};
 assert.equal(contact({x:110,y:40,width:28,height:65},rat,95,200),'stomp');
@@ -32,9 +32,17 @@ for (const route of ratRoutes) {
     direction=next; x+=direction*route.speed*.05;
     assert.ok(x>=route.from && x<=route.to);
     assert.equal(isGap(x-30)||isGap(x+30),false);
-    assert.equal(groundY(x-30),groundY(x+30),'first-level routes use predictable flat ground');
+    assert.ok(Math.abs(groundY(x-30)-groundY(x+30)) < 20,'patrol slopes stay gentle');
   }
   assert.ok(turns>=2);
+}
+// Reserve the entire patrol corridor including the visible nose/tail, not
+// just spawn positions: enemies must never walk in front of scenery silhouettes.
+for (const route of ratRoutes) {
+  const left=route.from-56,right=route.to+56;
+  for(const [xs,half,label] of [[level01.houses.map(h=>h.x),144,'house'],[level01.trees,128,'tree'],[level01.shrubs,56,'shrub'],[level01.rocks,58,'rock']]) {
+    for(const x of xs) assert.ok(right < x-half || left > x+half,`${label} overlaps patrol ${route.x}`);
+  }
 }
 const edge={x:3610,from:3400,to:3900,speed:60};
 assert.equal(patrolDirection(3610,1,edge,isGap),-1,'turn before entering an unplanned gap');

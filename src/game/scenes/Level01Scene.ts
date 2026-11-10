@@ -78,8 +78,8 @@ export class Level01Scene extends Phaser.Scene {
       // transparent texture margin, sits on the ground. No oversized gray slab.
       this.add.image(h.x,y+8,h.key).setOrigin(.5,1).setScale(.5).setDepth(3);
     }
-    for(const x of [60,690,1500,2290,3110,4030,4710])this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
-    for(const x of [570,920,1290,1770,2120,2560,2930,3380,3900,4220,4580,5150])this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
+    for(const x of level01.trees)this.add.image(x,Math.max(groundY(x-70),groundY(x+70))+8,'geo-tree').setOrigin(.5,1).setScale(0.5).setDepth(2);
+    for(const x of level01.shrubs)this.add.image(x,Math.max(groundY(x-45),groundY(x+45))+8,'geo-shrub').setOrigin(.5,1).setScale(0.5).setDepth(4);
     for(const fx of [790,815,840,3070,3095,3120]){
       const fy=Math.round(groundY(fx)/3)*3;
       g.fillStyle(0x403e47).fillRect(fx,fy-45,9,42);
@@ -93,11 +93,11 @@ export class Level01Scene extends Phaser.Scene {
     this.stream=new Stream(this);
     const signX=3280;
     this.add.image(signX,groundY(signX)+2,'jump-sign').setOrigin(.5,1).setScale(.42).setDepth(20);
-    for(const x of [800,1710,3030,4200,4820]){
+    for(const x of level01.rocks){
       const slope=Math.atan2(groundY(x+30)-groundY(x-30),60);
       this.add.image(x,groundY(x)+2,'illustrated-rock').setOrigin(.5,62/70).setScale(.5).setRotation(slope).setDepth(12);
     }
-    this.add.image(560,groundY(560)+8,'illustrated-props').setOrigin(.5,1).setScale(.5).setDepth(12);
+
   }
   private drawFinish() {
     const { x, y } = level01.finish;
