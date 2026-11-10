@@ -60,4 +60,4 @@ assert.equal(player.velocity.x,-230);assert.equal(player.velocity.y,-260);
 assert.equal(player.receiveHit(100,1),false);assert.equal(player.velocity.x,-230);
 player.bounce();assert.equal(player.velocity.y,-400);assert.equal(player.grounded,false);
 assert.equal(player.groundedAt,-Infinity);
-console.log('Rat checks passed: stomps, side/upward hits, invulnerability, death, six patrols, ledges, knockback and bounce.');
+console.log('Rat checks passed: stomps, side/upward hits, invulnerability, death, patrol routes, ledges, knockback and bounce.');
