@@ -10,6 +10,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('illustrated-mountains',root+'mountains.webp');
     this.load.image('ground-source',root+'ground.webp');
     this.load.image('drip-puddle',root+'drip-puddle.webp');
+    this.load.image('wall-infection',root+'wall-infection.webp');
     this.load.image('roof-fungus',root+'roof-fungus.webp');
     this.load.image('acid-bubble',root+'acid-bubble.webp');
     this.load.spritesheet('acid-jug',root+'acid-jug.webp',{frameWidth:768,frameHeight:192});
