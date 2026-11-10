@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { AcidJug } from '../hazards/AcidJug';
-import { acidPools, touchesAcid } from '../hazards/acidRules';
+import { acidPools } from '../hazards/acidRules';
 import { Rat } from '../entities/Rat';
 import { contact, ratRoutes } from '../combat/ratRules';
 import { Player } from '../entities/Player';
@@ -46,8 +46,8 @@ export class Level01Scene extends Phaser.Scene {
         if (result === 'hurt') { this.hurtPlayer(body.center.x < enemy.center.x ? -1 : 1); break; }
 
       }
-      if (!this.finished) for (const pool of acidPools) {
-        if (touchesAcid({x:body.x,y:body.y,width:body.width,height:body.height}, pool.from,pool.to,groundY(pool.x))) {
+      if (!this.finished) for (const jug of this.acid) {
+        if (jug.touches({x:body.x,y:body.y,width:body.width,height:body.height})) {
           this.hurtPlayer(body.velocity.x >= 0 ? -1 : 1); break;
         }
       }
@@ -120,7 +120,7 @@ export class Level01Scene extends Phaser.Scene {
     g.fillStyle(0x425b6a).fillRoundedRect(914, 61, 320, 4, 2);
     this.progress = this.add.graphics().setScrollFactor(0).setDepth(102);
     this.healthLabel = this.add.text(914, 87, '♥ ♥ ♥', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '27px', color: '#f4a18e', stroke: '#142c40', strokeThickness: 4 }).setScrollFactor(0).setDepth(101);
-    this.add.text(640, 641, 'Крыс побеждай прыжком сверху. Фиолетовую кислоту перепрыгивай.', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '17px', color: '#ffffff', stroke: '#142c40', strokeThickness: 4 }).setOrigin(.5).setScrollFactor(0).setDepth(101);
+    this.add.text(640, 641, 'Кувшин бурлит — подожди. Пузыри исчезли — проходи.', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '17px', color: '#ffffff', stroke: '#142c40', strokeThickness: 4 }).setOrigin(.5).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x142c40, 0.94).fillRect(230, 665, 820, 34);
     this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
@@ -129,7 +129,7 @@ export class Level01Scene extends Phaser.Scene {
     this.player.update(time, delta);
     for (const rat of this.rats) rat.update(delta);
     this.stream.animate(time);
-    for (const jug of this.acid) jug.animate(time);
+    for (const jug of this.acid) jug.animate(time,this.player.x);
     const floor = groundY(this.player.x);
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));
     this.shadow.setAlpha(Phaser.Math.Clamp(1 - (floor - this.player.y) / 400, 0.1, 1));
