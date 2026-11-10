@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
 import { groundY, level01 } from '../levels/level01';
 
-export const WATER_FRAME_COUNT=8;
-export const WATER_FRAME_MS=125;
-export function waterFrameAt(time:number):number{return Math.floor(Math.max(0,time)/WATER_FRAME_MS)%WATER_FRAME_COUNT;}
+import { waterFrameAt } from './waterLoop';
+export { WATER_FRAME_COUNT, WATER_FRAME_MS, waterFrameAt } from './waterLoop';
 export function waterSurfaceY():number{
   const gap=level01.gaps[0];return groundY((gap.from+gap.to)/2)+130;
 }

@@ -1,23 +1,20 @@
 import Phaser from 'phaser';
-// Normalise the illustrated phases so the generated grid plays as a consistent loop.
-export const WATER_FRAME_WIDTH=380;
-export const WATER_FRAME_HEIGHT=508;
-export const WATER_PHASE_SHIFTS=[0,18,25,35,38,225,217,211] as const;
-const verticalOffsets=[0,0,0,0,1,0,0,2];
+import { bakeWaterLoop, WATER_ATLAS_COLUMNS, WATER_FRAME_COUNT } from './waterLoop';
+
 export function prepareWaterTexture(scene:Phaser.Scene){
   if(scene.textures.exists('water-animation'))return;
   const source=scene.textures.get('water-sheet').getSourceImage() as HTMLImageElement;
-  const w=WATER_FRAME_WIDTH,h=WATER_FRAME_HEIGHT;
-  const canvas=document.createElement('canvas');canvas.width=w*8;canvas.height=h;
-  const c=canvas.getContext('2d')!;
-  WATER_PHASE_SHIFTS.forEach((shift,i)=>{
-    const sx=(i%4)*384+2,sy=Math.floor(i/4)*512+2,dy=verticalOffsets[i];
-    c.save();c.beginPath();c.rect(i*w,0,w,h);c.clip();
-    c.drawImage(source,sx,sy,w-shift,h,i*w+shift,dy,w-shift,h);
-    if(shift)c.drawImage(source,sx+w-shift,sy,shift,h,i*w,dy,shift,h);
-    c.restore();
-  });
-  const t=scene.textures.addCanvas('water-animation',canvas)!;
-  for(let i=0;i<8;i++)t.add(i,0,i*w,0,w,h);
-  t.setFilter(Phaser.Textures.FilterMode.LINEAR);
+  // One complete wave period from the first illustration. Other generated cells
+  // are deliberately unused: their levels and phases do not form a coherent cycle.
+  const period=193,frameHeight=508;
+  const sample=document.createElement('canvas');sample.width=period;sample.height=frameHeight;
+  const sampleContext=sample.getContext('2d')!;
+  sampleContext.drawImage(source,2,2,period,frameHeight,0,0,period,frameHeight);
+  const atlas=bakeWaterLoop(sampleContext.getImageData(0,0,period,frameHeight).data,period,frameHeight);
+  const canvas=document.createElement('canvas');canvas.width=atlas.width;canvas.height=atlas.height;
+  const context=canvas.getContext('2d')!,pixels=context.createImageData(atlas.width,atlas.height);
+  pixels.data.set(atlas.data);context.putImageData(pixels,0,0);
+  const texture=scene.textures.addCanvas('water-animation',canvas)!;
+  for(let i=0;i<WATER_FRAME_COUNT;i++)texture.add(i,0,(i%WATER_ATLAS_COLUMNS)*atlas.frameWidth,Math.floor(i/WATER_ATLAS_COLUMNS)*atlas.frameHeight,atlas.frameWidth,atlas.frameHeight);
+  texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
 }
