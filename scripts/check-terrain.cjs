@@ -14,6 +14,7 @@ const terrain=load('src/game/levels/level01.ts',{});
 const {Player}=load('src/game/entities/Player.ts',{
   phaser:{default:{Physics:{Arcade:{Sprite:class{}}},Math:{Clamp:(v,a,b)=>Math.max(a,Math.min(b,v))}}},
   '../levels/level01':terrain,
+  '../combat/ratRules':load('src/game/combat/ratRules.ts',{}),
 });
 function actor(x) {
   const p=Object.create(Player.prototype);

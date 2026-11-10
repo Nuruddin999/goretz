@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { Rat } from '../entities/Rat';
+import { contact, ratRoutes } from '../combat/ratRules';
 import { Player } from '../entities/Player';
 import { VIEW_WIDTH, VIEW_HEIGHT, RENDER_SCALE } from '../display';
 import { Stream, waterSurfaceY } from '../art/Stream';
@@ -7,6 +9,8 @@ import { groundY, isGap, level01 } from '../levels/level01';
 export class Level01Scene extends Phaser.Scene {
   private player!: Player;
   private stream!: Stream;
+  private rats: Rat[] = [];
+  private healthLabel!: Phaser.GameObjects.Text;
   private finished = false;
   private progress!: Phaser.GameObjects.Graphics;
   private shadow!: Phaser.GameObjects.Ellipse;
@@ -22,7 +26,30 @@ export class Level01Scene extends Phaser.Scene {
     this.drawTerrain();
     this.shadow = this.add.ellipse(level01.spawn.x, groundY(level01.spawn.x), 49, 9, 0x385c45, 0.2).setDepth(29);
     this.player = new Player(this, level01.spawn.x, level01.spawn.y);
-    const resolve = () => this.player.resolveTerrain();
+    this.rats = ratRoutes.map(route => new Rat(this, route));
+    const resolve = () => {
+      if (this.finished) return;
+      const body = this.player.body as Phaser.Physics.Arcade.Body;
+      const descending = body.velocity.y;
+      const previousBottom = body.prev.y + body.height;
+      this.player.resolveTerrain();
+      for (const rat of this.rats) {
+        if (!rat.alive) continue;
+        const enemy = rat.body as Phaser.Physics.Arcade.Body;
+        const result = contact({x:body.x,y:body.y,width:body.width,height:body.height},
+          {x:enemy.x,y:enemy.y,width:enemy.width,height:enemy.height},previousBottom,descending);
+        if (result === 'stomp') { rat.defeat(); this.player.bounce(); break; }
+        if (result === 'hurt' && this.player.receiveHit(this.time.now,body.center.x < enemy.center.x ? -1 : 1)) {
+          this.healthLabel.setText('♥ '.repeat(this.player.health.remaining) + '♡ '.repeat(3-this.player.health.remaining));
+          this.cameras.main.shake(100, .002);
+          if (this.player.health.remaining === 0) {
+            this.finished = true; this.physics.pause();
+            this.time.delayedCall(400, () => this.scene.restart());
+          }
+          break;
+        }
+      }
+    };
     this.physics.world.on(Phaser.Physics.Arcade.Events.WORLD_STEP, resolve);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.physics.world.off(Phaser.Physics.Arcade.Events.WORLD_STEP, resolve));
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08, -170, 95);
@@ -87,12 +114,15 @@ export class Level01Scene extends Phaser.Scene {
     this.add.text(914, 36, 'Дойди до нижнего селения', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '16px', color: '#f2d5ac' }).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x425b6a).fillRoundedRect(914, 61, 320, 4, 2);
     this.progress = this.add.graphics().setScrollFactor(0).setDepth(102);
+    this.healthLabel = this.add.text(914, 87, '♥ ♥ ♥', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '27px', color: '#f4a18e', stroke: '#142c40', strokeThickness: 4 }).setScrollFactor(0).setDepth(101);
+    this.add.text(640, 641, 'Прыгай крысе на спину. Столкновение сбоку — урон.', { resolution: RENDER_SCALE, fontFamily: 'sans-serif', fontSize: '17px', color: '#ffffff', stroke: '#142c40', strokeThickness: 4 }).setOrigin(.5).setScrollFactor(0).setDepth(101);
     g.fillStyle(0x142c40, 0.94).fillRect(230, 665, 820, 34);
     this.add.text(640, 682, 'A / D  или  ← →    •    Пробел — прыжок    •    R — заново', { resolution: RENDER_SCALE, fontFamily: 'monospace', fontSize: '15px', color: '#b9caca' }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
   update(time: number, delta: number) {
     if (this.finished) return;
     this.player.update(time, delta);
+    for (const rat of this.rats) rat.update(delta);
     this.stream.animate(time);
     const floor = groundY(this.player.x);
     this.shadow.setPosition(this.player.x, floor + 3).setVisible(!isGap(this.player.x));

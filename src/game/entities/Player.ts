@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Health } from '../combat/ratRules';
 import { groundY, isGap, level01 } from '../levels/level01';
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -7,6 +8,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private jumpAt = -Infinity;
   private grounded = false;
   private stride = 0;
+  readonly health = new Health();
+  private controlLockedUntil = -Infinity;
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'highlander', 6);
     scene.add.existing(this); scene.physics.add.existing(this);
@@ -21,14 +24,26 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.grounded) this.groundedAt = time;
     if (Phaser.Input.Keyboard.JustDown(this.cursors.space) || Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.W)) this.jumpAt = time;
     const direction = Number(this.cursors.right.isDown || this.keys.D.isDown) - Number(this.cursors.left.isDown || this.keys.A.isDown);
-    this.setVelocityX(direction * 290);
+    if (time >= this.controlLockedUntil) this.setVelocityX(direction * 290);
+    this.setAlpha(time < this.health.immuneUntil && Math.floor(time / 90) % 2 === 0 ? .4 : 1);
     if (direction) this.setFlipX(direction < 0);
-    if (time - this.jumpAt < 130 && time - this.groundedAt < 100) {
+    if (time >= this.controlLockedUntil && time - this.jumpAt < 130 && time - this.groundedAt < 100) {
       this.setVelocityY(-580); this.jumpAt = -Infinity; this.groundedAt = -Infinity; this.grounded = false;
     }
     if ((Phaser.Input.Keyboard.JustUp(this.cursors.space) || Phaser.Input.Keyboard.JustUp(this.cursors.up) || Phaser.Input.Keyboard.JustUp(this.keys.W)) && body.velocity.y < -220) this.setVelocityY(-220);
     this.stride += delta * 0.012;
     this.setFrame(!this.grounded ? 7 : direction ? Math.floor(this.stride) % 6 : 6);
+  }
+  bounce() {
+    this.setVelocityY(-400);
+    this.grounded = false; this.groundedAt = -Infinity; this.jumpAt = -Infinity;
+  }
+  receiveHit(time: number, direction: number): boolean {
+    if (!this.health.hit(time)) return false;
+    this.controlLockedUntil = time + 260;
+    this.setVelocity(direction * 230, -260);
+    this.grounded = false; this.groundedAt = -Infinity; this.jumpAt = -Infinity;
+    return true;
   }
   // Arcade rectangles cannot represent slopes. Resolve the feet against the
   // same piecewise-linear surface used for drawing, after each physics step.
