@@ -4,7 +4,7 @@ export type RatRoute = { x: number; from: number; to: number; speed: number };
 // banks of the ravine remain clear so combat never obscures the jump lesson.
 export const ratRoutes: RatRoute[] = [
   { x: 1160, from: 1010, to: 1280, speed: 60 },
-  { x: 1980, from: 1810, to: 2100, speed: 68 },
+  { x: 1760, from: 1660, to: 1840, speed: 68 },
   { x: 2660, from: 2580, to: 2730, speed: 72 },
   { x: 2870, from: 2800, to: 2920, speed: 72 },
   { x: 4330, from: 4280, to: 4380, speed: 78 },
