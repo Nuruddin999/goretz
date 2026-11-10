@@ -9,7 +9,7 @@ export class RoofFungus extends Phaser.GameObjects.Image {
   constructor(scene:Phaser.Scene,x:number,y:number){
     super(scene,x,y,'roof-fungus');scene.add.existing(this);
     this.setDisplaySize(58,32).setOrigin(.5,.35).setDepth(23);
-    scene.add.image(x,groundY(x)-1,'drip-puddle').setDisplaySize(70,10).setTint(0x201522).setDepth(21);
+    scene.add.image(x,groundY(x)-1,'drip-puddle').setDisplaySize(76,15).setDepth(21);
     this.drop=scene.add.image(x,y+22,'acid-bubble').setTint(0x221426).setDepth(24).setVisible(false);
   }
   animate(playerX:number){

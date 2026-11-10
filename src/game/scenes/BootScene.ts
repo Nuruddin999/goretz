@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { prepareDripTexture } from '../art/dripTexture';
 import { prepareWaterTexture } from '../art/waterTexture';
 import { prepareIllustratedAssets } from '../art/illustratedAssets';
 export class BootScene extends Phaser.Scene {
@@ -10,6 +9,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('hero-source',root+'hero.webp');
     this.load.image('illustrated-mountains',root+'mountains.webp');
     this.load.image('ground-source',root+'ground.webp');
+    this.load.image('drip-puddle',root+'drip-puddle.webp');
     this.load.image('roof-fungus',root+'roof-fungus.webp');
     this.load.image('acid-bubble',root+'acid-bubble.webp');
     this.load.spritesheet('acid-jug',root+'acid-jug.webp',{frameWidth:768,frameHeight:192});
@@ -19,7 +19,6 @@ export class BootScene extends Phaser.Scene {
   }
   create(){
     prepareWaterTexture(this);
-    prepareDripTexture(this);
     prepareIllustratedAssets(this);this.scene.start('Level01');
   }
 }
