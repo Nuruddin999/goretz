@@ -6,17 +6,18 @@ const terrain=load('src/game/levels/level01.ts');
 for(const pool of acidPools){
  const floor=terrain.groundY(pool.x);
  assert.equal(acidBubblesAt(0,pool.x,floor).length,1,'first approach immediately demonstrates one bubble');
- for(let t=0;t<acidCycle*3;t+=13)assert.ok(acidBubblesAt(t,pool.x,floor).length<=1,'never stack bubbles');
+ for(let t=0;t<acidCycle*3;t+=13)assert.ok(acidBubblesAt(t,pool.x,floor).length<=2,'at most two bubbles');
  assert.ok(acidBubblesAt(800,pool.x,floor)[0].y<acidBubblesAt(0,pool.x,floor)[0].y);
- assert.ok(acidBubblesAt(1300,pool.x,floor)[0].alpha<1);
- for(let t=1400;t<3200;t+=16)assert.equal(acidBubblesAt(t,pool.x,floor).length,0);
- assert.equal(acidBubblesAt(3200,pool.x,floor).length,1,'fixed repeat interval');
+ assert.ok(acidBubblesAt(1000,pool.x,floor)[0].alpha<1);
+ for(let t=1550;t<2400;t+=16)assert.equal(acidBubblesAt(t,pool.x,floor).length,0);
+ assert.equal(acidBubblesAt(2400,pool.x,floor).length,1,'fixed repeat interval');
+ const pair=acidBubblesAt(500,pool.x,floor);assert.equal(pair.length,2);assert.ok(pair[0].y<pair[1].y);assert.ok(pair[1].x>pair[0].x);
  const first=acidBubblesAt(0,pool.x,floor)[0];
  assert.equal(touchesBubble({x:first.x-14,y:floor-94,width:28,height:94},first),true);
  assert.equal(touchesBubble({x:first.x-14,y:floor-94,width:28,height:94},{...first,alpha:0}),false);
- let x=pool.x-80;
- for(let t=1400;t<3000;t+=1000/60){x+=290/60;assert.equal(acidBubblesAt(t,pool.x,floor).some(b=>touchesBubble({x:x-14,y:floor-94,width:28,height:94},b)),false);}
- assert.ok(x>pool.x+250);
+ let x=pool.x+55;
+ for(let t=1550;t<2380;t+=1000/60){x+=290/60;assert.equal(acidBubblesAt(t,pool.x,floor).some(b=>touchesBubble({x:x-14,y:floor-94,width:28,height:94},b)),false);}
+ assert.ok(x>pool.x+240);
 }
 const node=()=>({setDepth(){return this},setVisible(){return this},setOrigin(){return this},setPosition(){return this},setDisplaySize(){return this},setAlpha(){return this}});
 class Sprite{constructor(scene,x,y){Object.assign(this,{scene,x,y});}setOrigin(){return this}setScale(){return this}setDepth(){return this}setFrame(){return this}}
@@ -25,8 +26,8 @@ const scene={time:{now:20000},add:{existing(){},image:node,text(){textCalls++;th
 const {AcidJug}=load('src/game/hazards/AcidJug.ts',{phaser:{default:{GameObjects:{Sprite}}},'../levels/level01':terrain,'./acidRules':rules});
 const jug=new AcidJug(scene,4660);jug.animate(20000,150);assert.equal(jug.startedAt,null);
 jug.animate(20000,4400);assert.equal(jug.bubbles.length,1);
-scene.time.now=21400;jug.animate(21400,4400);assert.equal(jug.bubbles.length,0);
-scene.time.now=23200;jug.animate(23200,4400);assert.equal(jug.bubbles.length,1);
+scene.time.now=21550;jug.animate(21550,4400);assert.equal(jug.bubbles.length,0);
+scene.time.now=22400;jug.animate(22400,4400);assert.equal(jug.bubbles.length,1);
 assert.equal(textCalls,0);
 const roof=load('src/game/hazards/roofRules.ts',{'../levels/level01':terrain,'./acidRules':rules});
 for(const leak of roof.roofLeaks){
@@ -46,4 +47,4 @@ for(const leak of roof.roofLeaks){
  assert.equal(roof.dripAt(2000,leak.x,leak.y,floor),null);
  assert.equal(JSON.stringify(roof.dripAt(900,leak.x,leak.y,floor)),JSON.stringify(roof.dripAt(3700,leak.x,leak.y,floor)));
 }
-console.log('Hazard checks passed: immediate single bubble, constant cadence, rising/evaporation, safe passage, no labels, falling drop, harmless puddle/splash and repeat timing.');
+console.log('Hazard checks passed: staggered double bubbles, faster cadence, rising/evaporation, safe passage, no labels, falling drop, harmless puddle/splash and repeat timing.');
