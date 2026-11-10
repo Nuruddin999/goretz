@@ -8,8 +8,6 @@ export const ratRoutes: RatRoute[] = [
   { x: 1760, from: 1660, to: 1840, speed: 68 },
   { x: 2660, from: 2580, to: 2730, speed: 72 },
   { x: 2870, from: 2800, to: 2920, speed: 72 },
-  { x: 4330, from: 4280, to: 4380, speed: 78 },
-  { x: 4510, from: 4460, to: 4550, speed: 78 },
 ].map(r => ({ ...r, x: pathX(r.x), from: pathX(r.from), to: pathX(r.to) }));
 export function contact(player: Rect, rat: Rect, previousBottom: number, velocityY: number): 'none' | 'stomp' | 'hurt' {
   if (player.x + player.width <= rat.x || player.x >= rat.x + rat.width ||

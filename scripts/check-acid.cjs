@@ -16,4 +16,5 @@ for(const pool of acidPools){
  for(const h of level01.houses)assert.ok(h.x+144<pool.x || h.x-144>pool.x+192,'hazard has no house behind it');
 }
 assert.equal(acidFrameAt(0),0);assert.equal(acidFrameAt(959),7);assert.equal(acidFrameAt(960),0);assert.equal(acidFrameAt(1920),0);
+assert.ok(acidPools.every(p=>p.x>level01.gaps[0].to),'acid is introduced after the ravine');
 console.log('Acid checks passed: contact, airborne safety, full jump, landing room, open backdrop and animation loop.');
