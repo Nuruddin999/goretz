@@ -11,7 +11,7 @@ export class RoofFungus extends Phaser.GameObjects.Image {
     // Keep the original cottage. Only its last column gets a damaged overlay.
     scene.add.image(x-8,y-7,'roof-damaged-corner').setOrigin(.5,0).setDisplaySize(32,groundY(x)-y+7).setDepth(20);
     // Widen the damage at ground level, with shelf fungi beside the puddle.
-    scene.add.image(x-10,groundY(x)+1,'roof-damaged-corner','infected-base').setOrigin(.5,1).setDisplaySize(48,62).setDepth(20);
+    scene.add.image(x+8,groundY(x)+1,'lower-ruin-overlay').setOrigin(1,1).setDisplaySize(72,82).setDepth(20);
     // The bottom of the lip is the fixed pivot, so breathing never detaches the drop.
     this.setOrigin(.815,1).setDisplaySize(128,37).setDepth(23);
     scene.add.image(x,groundY(x)-1,'drip-puddle').setDisplaySize(76,15).setDepth(21);
