@@ -9,6 +9,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('hero-source',root+'hero.webp');
     this.load.image('illustrated-mountains',root+'mountains.webp');
     this.load.image('ground-source',root+'ground.webp');
+    this.load.spritesheet('rat',root+'rat-run.webp',{frameWidth:512,frameHeight:256});
     this.load.image('water-sheet',root+'water-sheet.webp');
     this.add.text(this.scale.width/2,this.scale.height/2,'Загрузка рисунков…',{fontFamily:'sans-serif',fontSize:'22px',color:'#ffffff'}).setOrigin(.5);
   }

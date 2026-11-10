@@ -1,0 +1,6 @@
+Generated with the built-in image generation tool; transparent background.
+
+Use case: stylized-concept. Game asset: one polished cartoon rat running sprite sheet for a colorful illustrated side-scrolling platformer. Four frames in an exact 2 by 2 equal square grid, read left to right, seamless four-phase running gait. Same rat in every frame facing RIGHT in strict side view: plump warm gray-brown body, lighter muzzle and belly, large rounded pink ears, small determined black eyes, pink nose, four short feet, long curved pink tail trailing left. Appealing mischievous ordinary village rat, not zombie, no accessories. Smooth professional mobile platform game artwork with clean dark brown outlines, restrained soft cel shading, clear silhouette and saturated warm colors. Consistent proportions, camera and body size across all four frames; alternate legs forward, tucked, opposite forward, tucked to make a continuous run. Each rat fully inside its own cell with generous transparent padding, aligned paws at same baseline. Actual transparent background. No text, no grid lines, no ground, no shadows, no scenery. High resolution crisp clean illustration.
+
+Integration: crop alpha bounds in each cell, shared 0.74 scale, align paws to
+baseline 240, pack four 512x256 frames horizontally, encode alpha WebP quality 92.
